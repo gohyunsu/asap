@@ -83,6 +83,13 @@ window.ASAP_DECK = {
       title: "Talk structure",
       subtitle: "The deck builds from field context to math, method, evidence, and interpretation.",
       lead: "The technical dependency chain is important: delta action only makes sense after the audience understands MDPs, policy gradients, motion tracking, partial observability, and sim-to-real mismatch.",
+      points: [
+        "<strong>Start broad.</strong> We first locate ASAP among humanoid skill learning, motion imitation, and sim-to-real research.",
+        "<strong>Build the math.</strong> The RL slides introduce only the machinery needed later: trajectories, return, value, policy gradient, PPO, and residual dynamics.",
+        "<strong>Then read the paper.</strong> Pretraining explains how the tracking policy is obtained; delta action explains how real rollout data changes the training simulator.",
+        "<strong>End with evidence.</strong> The benchmark, real robot, and ablation slides are organized around what each experiment proves about the method.",
+      ],
+      layout: "wide",
       visual: {
         type: "pipeline",
         steps: [
@@ -119,6 +126,13 @@ window.ASAP_DECK = {
       chapter: "Contributions",
       title: "Main contributions",
       subtitle: "The paper combines a practical data pipeline, an action-space residual model, and a real humanoid validation.",
+      lead: "The contribution is not one isolated trick. ASAP is useful because the pieces form a complete transfer loop: build a tracking policy, expose its real-world failure mode, learn an action-space correction, and fine-tune under the corrected simulator.",
+      points: [
+        "The delta action model is learned from real rollouts rather than guessed through hand-tuned parameter ranges.",
+        "The correction is used during training, so deployment stays simple: one tracking policy runs on the robot.",
+        "The evaluation includes both controlled sim-to-sim transfer and real Unitree G1 transfer, which separates model behavior from hardware behavior.",
+      ],
+      layout: "wide",
       visual: {
         type: "cards",
         cols: 2,
@@ -203,6 +217,13 @@ window.ASAP_DECK = {
       chapter: "Humanoid Skills",
       title: "The humanoid learning stack",
       subtitle: "ASAP sits near the bottom of a larger stack that starts with motion data and ends with real robot execution.",
+      lead: "A useful way to read the paper is as a stack of interfaces. Each interface changes the representation: video becomes SMPL, SMPL becomes robot motion, robot motion becomes an RL objective, and the learned policy becomes real hardware behavior.",
+      points: [
+        "Errors can enter at any interface, so the paper deliberately separates motion reconstruction, retargeting, policy learning, and dynamics alignment.",
+        "ASAP's novelty is concentrated in the final interface between a simulation-trained controller and real-world physics.",
+        "This stack view also explains why the paper compares against SysID, DR, and DeltaDynamics rather than only against motion imitation baselines.",
+      ],
+      layout: "wide",
       visual: {
         type: "pipeline",
         steps: [
@@ -239,6 +260,13 @@ window.ASAP_DECK = {
       chapter: "Related Work",
       title: "Research lineage",
       subtitle: "ASAP connects physics-based character imitation, humanoid locomotion RL, human-data pipelines, and sim-to-real adaptation.",
+      lead: "The paper is best positioned as a bridge between two histories: animation-style physics imitation, which made expressive motion learning practical, and real humanoid RL, which made deployment feasible but often focused on locomotion robustness.",
+      points: [
+        "DeepMimic and AMP explain why motion data plus RL can produce rich behavior in simulation.",
+        "Humanoid Parkour and HumanPlus show that real humanoid deployment and human-data pipelines are now mature enough to support more ambitious skill learning.",
+        "ASAP contributes a transfer mechanism for the regime where the desired behavior is both expressive and dynamically fragile.",
+      ],
+      layout: "wide",
       visual: {
         type: "timeline",
         items: [
@@ -415,6 +443,13 @@ window.ASAP_DECK = {
       chapter: "Positioning",
       title: "ASAP's position",
       subtitle: "The method is best read as dynamics alignment for expressive humanoid motion tracking.",
+      lead: "The table is not a ranking of papers. It isolates the main question each stream answers, then shows that ASAP's question sits at the intersection of expressive imitation and real-world transfer.",
+      points: [
+        "If the audience asks whether ASAP is a motion prior paper, the answer is mostly no: it assumes a tracking objective and focuses on transfer.",
+        "If the audience asks whether ASAP is only a sim-to-real paper, the answer is also incomplete: the stress case is agile whole-body imitation, not generic locomotion.",
+        "This positioning matters because the SOTA signal is the combination of motion fidelity, agility, and real deployment.",
+      ],
+      layout: "wide",
       visual: {
         type: "table",
         headers: ["Work stream", "Main question", "Relation to ASAP"],
@@ -432,6 +467,13 @@ window.ASAP_DECK = {
       chapter: "Positioning",
       title: "Research questions",
       subtitle: "The experiments are easier to follow when mapped to explicit questions.",
+      lead: "Each result table in the paper can be read as answering one of these questions. This prevents the evaluation section from becoming a list of numbers without a logic.",
+      points: [
+        "Dynamics matching is tested before policy fine-tuning because the delta model must first be a plausible simulator alignment mechanism.",
+        "Closed-loop policy evaluation is the real test: a low one-step error is useful only if it produces a better controller.",
+        "Ablations check whether the effect depends on real data size, rollout horizon, action regularization, or the way the delta model is used.",
+      ],
+      layout: "wide",
       visual: {
         type: "cards",
         cols: 2,
@@ -489,6 +531,12 @@ window.ASAP_DECK = {
       chapter: "RL Basics",
       title: "Trajectory",
       subtitle: "A trajectory is the time series produced by repeatedly applying a policy in an environment.",
+      lead: "In robotics, a trajectory is not just a stored animation. It is the outcome of closed-loop interaction: the policy acts, physics responds, the next observation changes, and the next action is conditioned on that new observation.",
+      points: [
+        "A trajectory couples policy and dynamics; changing either one changes the whole time series.",
+        "This is why sim-to-real mismatch matters: the same policy can generate different trajectories under f<sup>sim</sup> and f<sup>real</sup>.",
+        "ASAP uses real trajectories as evidence of how the simulator transition should be altered during post-training.",
+      ],
       visual: {
         type: "formula",
         items: [
@@ -583,6 +631,13 @@ window.ASAP_DECK = {
       chapter: "PPO",
       title: "Actor-critic",
       subtitle: "The actor chooses actions; the critic estimates values used to train the actor.",
+      lead: "The actor-critic split is especially useful for robots because the controller that runs on hardware should be simple, while training can use extra information to make optimization easier.",
+      points: [
+        "The actor is the deployable controller: it maps available observations to motor commands.",
+        "The critic is a training scaffold: it estimates future return and can be discarded after learning.",
+        "ASAP's asymmetric actor-critic uses this split to preserve deployability while still exploiting privileged simulator state during training.",
+      ],
+      layout: "wide",
       visual: {
         type: "pipeline",
         steps: [
@@ -660,6 +715,13 @@ window.ASAP_DECK = {
       chapter: "Robot Control",
       title: "Proprioception",
       subtitle: "The deployed actor uses robot-internal signals rather than global reference positions.",
+      lead: "Proprioception is the robot's internal body sense. For real deployment, it is much more reliable than assuming perfect global pose, perfect contact labels, or direct access to the reference trajectory in world coordinates.",
+      points: [
+        "The five-step history in ASAP gives the policy a short memory of motion trends and delayed effects.",
+        "Projected gravity gives orientation information without requiring a full global pose estimate.",
+        "Previous actions help infer hidden actuator dynamics: if the last command has not taken effect yet, the current state alone may be ambiguous.",
+      ],
+      layout: "wide",
       visual: {
         type: "terms",
         cols: 2,
@@ -719,6 +781,13 @@ window.ASAP_DECK = {
       chapter: "Robot Control",
       title: "Reward shaping",
       subtitle: "Robot rewards usually mix task terms, regularizers, and hard safety penalties.",
+      lead: "The reward is the paper's practical definition of what counts as a good rollout. For motion tracking, it has to measure imitation quality while discouraging solutions that look good numerically but are unsafe or physically implausible.",
+      points: [
+        "Task terms pull the policy toward the reference motion at the body, foot, joint, velocity, and rotation levels.",
+        "Regularization terms prevent the policy from using unnecessarily violent actions to gain small tracking improvements.",
+        "Penalty terms encode hardware and contact constraints that are not captured by a single tracking metric.",
+      ],
+      layout: "wide",
       visual: {
         type: "table",
         headers: ["Reward group", "Purpose", "Examples in ASAP"],
@@ -774,6 +843,13 @@ window.ASAP_DECK = {
       chapter: "Sim-to-Real",
       title: "Sim-to-real gap",
       subtitle: "The same policy can induce different trajectories when the transition function changes.",
+      lead: "The formal issue is simple: training optimizes a policy under one transition function, but deployment evaluates it under another. For agile motion, the gap becomes visible within a few steps because impacts and balance corrections leave little time to recover.",
+      points: [
+        "A transition function maps the current state and action to the next state distribution.",
+        "If the simulator and real robot disagree on this mapping, the policy's learned feedback response can be systematically wrong.",
+        "ASAP does not try to make f<sup>sim</sup> perfect; it tries to make the training rollout distribution more useful for the final policy.",
+      ],
+      layout: "wide",
       visual: {
         type: "derivation",
         steps: [
@@ -801,6 +877,13 @@ window.ASAP_DECK = {
       chapter: "Sim-to-Real",
       title: "Open-loop vs closed-loop evaluation",
       subtitle: "ASAP uses both because they answer different questions.",
+      lead: "Open-loop replay is a model diagnostic; closed-loop rollout is a controller diagnostic. A strong paper should show both, because a model that predicts one step well is not automatically a good training environment.",
+      points: [
+        "Open-loop replay removes policy feedback, so trajectory error mainly reflects dynamics mismatch under a fixed action sequence.",
+        "Closed-loop rollout includes feedback, so the policy can compensate, overreact, or fail depending on what it learned.",
+        "ASAP's strongest claim is closed-loop: after fine-tuning in the aligned simulator, the final policy tracks better in target dynamics.",
+      ],
+      layout: "wide",
       visual: {
         type: "compare",
         rows: [
@@ -815,6 +898,13 @@ window.ASAP_DECK = {
       chapter: "Sim-to-Real",
       title: "Tracking metrics",
       subtitle: "The reported errors compare robot motion against references or target-environment trajectories.",
+      lead: "The metrics separate spatial accuracy, local pose accuracy, temporal smoothness, and rollout success. Reading them together is important because one number can improve while another exposes instability.",
+      points: [
+        "Global MPJPE is sensitive to drift and base placement, so it captures whether the robot ends up where the reference expects.",
+        "Local MPJPE focuses more on body configuration and less on global translation error.",
+        "Acceleration and velocity errors reveal jerk or timing mismatch that may not be obvious from pose snapshots.",
+      ],
+      layout: "wide",
       visual: {
         type: "terms",
         cols: 2,
@@ -887,6 +977,13 @@ window.ASAP_DECK = {
       chapter: "Human Motion",
       title: "SMPL",
       subtitle: "SMPL is a structured bridge between raw video and retargetable 3D body motion.",
+      lead: "SMPL matters because it turns messy video observations into a compact body model. But this representation is still human-centric, so it must be cleaned and retargeted before a Unitree G1 can use it.",
+      points: [
+        "Root translation and orientation describe how the whole body moves through the world.",
+        "Pose parameters describe articulation; shape parameters describe body proportions.",
+        "The same SMPL clip can look plausible visually while violating robot contacts, joint ranges, or balance constraints.",
+      ],
+      layout: "wide",
       visual: {
         type: "terms",
         cols: 2,
@@ -979,6 +1076,13 @@ window.ASAP_DECK = {
       chapter: "Tracking Policy",
       title: "Phase-based tracking state",
       subtitle: "The actor observes proprioceptive history plus phase.",
+      lead: "ASAP deliberately keeps the deployed actor compact. It does not feed the full reference trajectory into the actor; instead, it supplies a phase variable and lets the policy infer the appropriate motion from proprioceptive history.",
+      points: [
+        "The five-step history helps the policy infer velocity, latency, and short-term dynamics beyond a single observation.",
+        "The phase variable tells the actor where it is within the reference skill, such as takeoff, flight, or landing.",
+        "This design is less expressive than full reference conditioning, but it is cleaner for real deployment and sim-to-real analysis.",
+      ],
+      layout: "wide",
       visual: {
         type: "formula",
         items: [
@@ -1013,6 +1117,13 @@ window.ASAP_DECK = {
       chapter: "Tracking Policy",
       title: "Pretraining reward",
       subtitle: "ASAP combines tracking terms, smoothness regularizers, and safety penalties.",
+      lead: "A humanoid tracking reward has to balance competing goals. Pure pose tracking can produce high torques or foot slip; pure smoothness can make the robot underperform the agile part of the motion.",
+      points: [
+        "Body and feet tracking terms preserve the visible motion and contact timing.",
+        "DoF tracking terms keep the robot's joint configuration close to the retargeted reference.",
+        "Velocity terms and action regularization make the controller usable as a feedback policy rather than a sequence of sharp target jumps.",
+      ],
+      layout: "wide",
       visual: {
         type: "table",
         headers: ["Group", "Representative terms", "Effect"],
@@ -1028,6 +1139,13 @@ window.ASAP_DECK = {
       chapter: "Tracking Policy",
       title: "Pretraining design choices",
       subtitle: "Three implementation details are central for agile motions.",
+      lead: "These details are easy to treat as engineering footnotes, but they are part of why the first-stage policy is strong enough to collect useful real rollouts.",
+      points: [
+        "Without a good critic, PPO receives noisy long-horizon signals and may fail on short dynamic phases.",
+        "Without curriculum, early training can terminate before the policy sees the hard parts of a motion.",
+        "Without random reference initialization, later phases such as landing receive too little direct learning signal.",
+      ],
+      layout: "wide",
       visual: {
         type: "cards",
         cols: 3,
@@ -1060,6 +1178,13 @@ window.ASAP_DECK = {
       chapter: "Tracking Policy",
       title: "Pretraining output",
       subtitle: "The first stage produces motion tracking policies and the real rollouts needed for post-training.",
+      lead: "This is the transition point of the paper. Up to this slide, everything is about producing a competent simulator-trained tracker; after this point, the real robot is used to reveal how that tracker interacts with unmodeled physics.",
+      points: [
+        "The pretrained policy should be good enough to execute the target skill without immediate catastrophic failure.",
+        "Real deployment creates paired evidence: what the policy commanded and what the real robot actually did.",
+        "That evidence becomes the dataset for learning the delta action model, not the final deployment controller.",
+      ],
+      layout: "wide",
       visual: {
         type: "pipeline",
         steps: [
@@ -1075,6 +1200,14 @@ window.ASAP_DECK = {
       chapter: "Tracking Policy",
       title: "Stage boundary",
       subtitle: "Stage 1 learns skills; Stage 2 learns how reality modifies those skills.",
+      lead: "The official pipeline is the cleanest visual summary of ASAP. The important detail is that the delta action model is inserted between policy action and simulator transition only during fine-tuning.",
+      points: [
+        "Stage 1 trains a motion tracking policy and collects real trajectories with that policy.",
+        "Stage 2 trains a delta action model from real rollout mismatch.",
+        "Stage 3 freezes the delta model and fine-tunes the tracking policy inside the aligned simulator.",
+        "Deployment runs the fine-tuned tracking policy directly on the real robot.",
+      ],
+      layout: "wide",
       visual: {
         type: "image",
         src: "https://agile.human2humanoid.com/static/images/ASAP_pipeline-crop.png",
@@ -1124,6 +1257,13 @@ window.ASAP_DECK = {
       chapter: "Real Rollouts",
       title: "Replay exposes mismatch",
       subtitle: "If the real action sequence is replayed in simulation, the simulated trajectory drifts away from the recorded real trajectory.",
+      lead: "The key signal is not simply that the real robot has an error. It is that, for a recorded real state-action pair, the simulator predicts a different next state than the real robot produced.",
+      points: [
+        "The real rollout provides s<sub>t</sub><sup>r</sup>, a<sub>t</sub><sup>r</sup>, and s<sub>t+1</sub><sup>r</sup>.",
+        "The simulator is aligned to the recorded real state and asked what would happen under the recorded action.",
+        "The next-state discrepancy becomes a concrete training signal for the delta action policy.",
+      ],
+      layout: "wide",
       visual: {
         type: "derivation",
         steps: [
@@ -1147,6 +1287,14 @@ window.ASAP_DECK = {
       chapter: "Real Rollouts",
       title: "Baselines",
       subtitle: "ASAP compares against three natural alternatives.",
+      lead: "The baselines separate three hypotheses: maybe no adaptation is needed, maybe hand-tuned parameters are enough, or maybe a learned state residual is enough. ASAP argues that action-space residual alignment fits this setting better.",
+      points: [
+        "Vanilla tests whether a strong pretrained tracker transfers without post-training.",
+        "SysID tests whether explicit parameter calibration can explain the real mismatch.",
+        "DeltaDynamics tests whether direct next-state correction is the right residual representation.",
+        "ASAP tests whether action correction plus policy fine-tuning creates a better training environment.",
+      ],
+      layout: "wide",
       visual: {
         type: "compare",
         rows: [
@@ -1203,6 +1351,14 @@ window.ASAP_DECK = {
       chapter: "Residual Action",
       title: "Learning loop",
       subtitle: "Delta action learning is an RL problem over short real-state replay environments.",
+      lead: "The delta model is trained as a policy because the correction must work through the simulator's own physics. This is different from supervised regression to a next-state offset.",
+      points: [
+        "Input: current real-aligned state and the nominal recorded action.",
+        "Output: a corrective action offset Δa.",
+        "Environment: the simulator applies a + Δa and produces the next simulated state.",
+        "Reward: simulated next state should match the recorded real next state while keeping corrections bounded and smooth.",
+      ],
+      layout: "wide",
       visual: {
         type: "pipeline",
         steps: [
@@ -1235,6 +1391,13 @@ window.ASAP_DECK = {
       chapter: "Residual Action",
       title: "Action residual vs state residual",
       subtitle: "The residual lives before the simulator transition rather than after it.",
+      lead: "This distinction is central. A state residual edits the answer after physics is computed; an action residual edits the command before physics is computed, so contact and constraints still pass through the simulator.",
+      points: [
+        "State residuals can match one-step data but risk producing states the simulator would not naturally generate.",
+        "Action residuals are constrained by the simulator interface, which can make them more physically structured.",
+        "For humanoids, contacts, joint limits, and balance constraints are exactly where unconstrained state corrections can become dangerous.",
+      ],
+      layout: "wide",
       visual: {
         type: "compare",
         rows: [
@@ -1249,6 +1412,13 @@ window.ASAP_DECK = {
       chapter: "Fine-tuning",
       title: "Aligned simulator",
       subtitle: "After training π<sup>Δ</sup>, ASAP freezes it and turns it into a simulator modifier.",
+      lead: "Once the delta action model is trained, ASAP stops updating it and treats it as part of the simulator. The motion tracking policy is then fine-tuned in this modified environment.",
+      points: [
+        "The policy still outputs an action a<sub>t</sub>.",
+        "The frozen delta model adds π<sup>Δ</sup>(s<sub>t</sub>, a<sub>t</sub>) before the simulator transition.",
+        "The resulting rollout distribution is intended to resemble real-world physics more closely than the original simulator.",
+      ],
+      layout: "wide",
       visual: {
         type: "formula",
         items: [
@@ -1347,6 +1517,13 @@ window.ASAP_DECK = {
       chapter: "Derivations",
       title: "One-step consistency assumption",
       subtitle: "The training-free baselines start from a simple relation between real and simulated one-step dynamics.",
+      lead: "A tempting idea is to compensate the pretrained action at every step by subtracting the learned delta. The appendix shows why this creates an implicit equation rather than a simple closed-form replacement.",
+      points: [
+        "The delta model depends on the action it is asked to correct.",
+        "Therefore the desired real-world action appears on both sides of the equation.",
+        "This motivates fixed-point and gradient-based alternatives, which the paper evaluates but finds inferior to RL fine-tuning.",
+      ],
+      layout: "wide",
       visual: {
         type: "derivation",
         steps: [
@@ -1370,6 +1547,13 @@ window.ASAP_DECK = {
       chapter: "Derivations",
       title: "Fixed-point iteration",
       subtitle: "One can try to solve the implicit action equation without RL, but the method is myopic.",
+      lead: "Fixed-point solving tries to find an action y such that, after the delta model modifies y, the simulator receives the pretrained policy's desired action. It is mathematically reasonable but brittle for real-time humanoid control.",
+      points: [
+        "The method adds computation at deployment time.",
+        "Convergence is not guaranteed for every state and action.",
+        "Even if one-step consistency improves, the policy itself has not learned how to behave under the corrected dynamics over long horizons.",
+      ],
+      layout: "wide",
       visual: {
         type: "formula",
         items: [
@@ -1385,6 +1569,13 @@ window.ASAP_DECK = {
       chapter: "Derivations",
       title: "Gradient-based action solving",
       subtitle: "Another training-free route solves for an action y that makes the corrected action match the nominal simulator policy.",
+      lead: "The gradient alternative treats action correction as a per-step optimization problem. It is useful as an ablation because it tests whether action solving alone can replace policy fine-tuning.",
+      points: [
+        "The objective penalizes mismatch between the corrected command and the pretrained policy command.",
+        "Like fixed-point solving, it adds deployment-time computation.",
+        "It optimizes a one-step surrogate rather than retraining the feedback policy for the aligned dynamics.",
+      ],
+      layout: "wide",
       visual: {
         type: "formula",
         items: [
@@ -1416,6 +1607,13 @@ window.ASAP_DECK = {
       chapter: "Derivations",
       title: "Algorithm summary",
       subtitle: "ASAP is a short algorithm with a long dependency chain.",
+      lead: "The algorithm has three learned objects with different lifetimes: the pretrained tracking policy initializes the process, the delta action policy aligns simulation during training, and the fine-tuned tracking policy is the only object deployed.",
+      points: [
+        "Pretraining creates an initial skill policy that can generate meaningful real rollouts.",
+        "Delta action training turns those real rollouts into a modified simulator transition.",
+        "Fine-tuning adapts the skill policy to the modified transition, producing the final deployable controller.",
+      ],
+      layout: "wide",
       visual: {
         type: "sequence",
         items: [
@@ -1433,6 +1631,13 @@ window.ASAP_DECK = {
       chapter: "Benchmarks",
       title: "Evaluation matrix",
       subtitle: "The paper tests both simulator transfer and real robot transfer.",
+      lead: "The evaluation is organized to answer one question at a time. Sim-to-sim experiments provide controlled target dynamics, while real robot experiments test whether the same idea survives hardware constraints and data scarcity.",
+      points: [
+        "Open-loop studies ask whether the learned aligned simulator predicts target-environment rollouts better.",
+        "Closed-loop studies ask whether policy fine-tuning in that simulator improves actual controller behavior.",
+        "Real robot studies are smaller but more consequential because hardware safety and data collection become binding constraints.",
+      ],
+      layout: "wide",
       visual: {
         type: "table",
         headers: ["Transfer", "Training environment", "Target environment", "Question"],
@@ -1449,6 +1654,14 @@ window.ASAP_DECK = {
       chapter: "Benchmarks",
       title: "Baseline methods",
       subtitle: "The comparisons separate policy learning from physics alignment.",
+      lead: "The baseline set is useful because each method fails for a different reason. This makes the evidence more interpretable than a single Vanilla comparison.",
+      points: [
+        "Oracle is not a deployable baseline; it marks what happens when training and testing dynamics match.",
+        "Vanilla measures raw transfer error after standard pretraining.",
+        "SysID and DeltaDynamics test two different alignment philosophies: parameter calibration and state-space residual correction.",
+        "ASAP tests whether the action interface is a better place to inject the learned mismatch.",
+      ],
+      layout: "wide",
       visual: {
         type: "compare",
         rows: [
@@ -1482,6 +1695,13 @@ window.ASAP_DECK = {
       chapter: "Benchmarks",
       title: "Closed-loop simulator transfer",
       subtitle: "Policy fine-tuning is evaluated under Easy, Medium, and Hard motion levels.",
+      lead: "The important pattern is not just that ASAP lowers error. It maintains success across difficulty levels while competing approaches can lose stability or show higher pose and acceleration errors.",
+      points: [
+        "IsaacSim and Genesis provide two different target physics engines, so improvements are not tied to one simulator pair.",
+        "The Hard level is the most informative because dynamic motions amplify mismatch.",
+        "The table supports the central claim that the aligned simulator is useful for training a closed-loop policy, not only for replay prediction.",
+      ],
+      layout: "wide",
       visual: {
         type: "table",
         headers: ["Target", "Level", "ASAP outcome reported in Table IV"],
@@ -1560,6 +1780,13 @@ window.ASAP_DECK = {
       chapter: "Real Robot",
       title: "Real-world closed-loop results",
       subtitle: "ASAP improves both in-distribution and out-of-distribution real motion tracking.",
+      lead: "The real robot table is the most direct evidence for the method. The kick result shows improvement on a task represented in the real data regime; the LeBron result tests whether learned ankle physics alignment helps beyond the exact training motions.",
+      points: [
+        "For Real-World-Kick, ASAP lowers global MPJPE, local MPJPE, acceleration error, and velocity error relative to Vanilla.",
+        "For the OOD LeBron motion, the global error reduction is larger, which is important because collecting real data for every motion is unrealistic.",
+        "The 4-DoF ankle delta is limited, so these improvements should be read as targeted real-physics alignment rather than full-body system identification.",
+      ],
+      layout: "wide",
       visual: {
         type: "table",
         headers: ["Motion", "Method", "E<sub>g-mpjpe</sub>", "E<sub>mpjpe</sub>", "E<sub>acc</sub>", "E<sub>vel</sub>"],
@@ -1731,6 +1958,14 @@ window.ASAP_DECK = {
       chapter: "Ablations",
       title: "Why the evidence is coherent",
       subtitle: "The experiments line up across model matching, policy performance, real transfer, and ablation logic.",
+      lead: "The evidence forms a chain. If any link failed, the paper's claim would be weaker: better replay without better policy would be only a modeling result, and better real tracking without ablations would be harder to attribute.",
+      points: [
+        "Dynamics matching shows that the learned action residual captures target-environment behavior.",
+        "Policy fine-tuning shows that this aligned dynamics model is useful for closed-loop learning.",
+        "Real robot experiments show that the idea matters under hardware constraints.",
+        "Ablations explain why data, horizon, action regularization, and fine-tuning strategy all matter.",
+      ],
+      layout: "wide",
       visual: {
         type: "pipeline",
         steps: [
@@ -1763,6 +1998,13 @@ window.ASAP_DECK = {
       chapter: "Interpretation",
       title: "When ASAP should help",
       subtitle: "The method is most compelling when a pretrained skill exists but transfer quality is limited by structured dynamics mismatch.",
+      lead: "ASAP is not a universal humanoid solution. It is strongest when there is already a usable motion tracker and the remaining failure is a repeatable physics gap that can be exposed through real rollouts.",
+      points: [
+        "The method needs enough real data to identify the relevant mismatch.",
+        "It assumes the simulator is still useful once its action interface is corrected.",
+        "It is less likely to solve failures dominated by perception, planning, sparse task semantics, or extremely variable terrain.",
+      ],
+      layout: "wide",
       visual: {
         type: "cards",
         cols: 2,
@@ -1841,6 +2083,13 @@ window.ASAP_DECK = {
       chapter: "Interpretation",
       title: "Notation glossary",
       subtitle: "The core symbols in the paper all refer to either policy behavior, environment dynamics, or alignment residuals.",
+      lead: "Keeping the notation organized helps the method feel less mysterious. The central equation has only three moving parts: a policy action, a learned action correction, and a simulator transition.",
+      points: [
+        "π is the object we ultimately care about because it runs on the robot.",
+        "π<sup>Δ</sup> is a temporary training object that shapes simulator physics.",
+        "f<sup>ASAP</sup> is not a new physics engine; it is the original simulator called with a corrected action.",
+      ],
+      layout: "wide",
       visual: {
         type: "table",
         headers: ["Symbol", "Meaning", "Where it appears"],

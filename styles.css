@@ -196,7 +196,7 @@ img {
   height: 100%;
   margin: 0 auto;
   display: grid;
-  grid-template-rows: 176px minmax(0, 1fr);
+  grid-template-rows: 164px minmax(0, 1fr);
   gap: 0;
   min-width: 0;
 }
@@ -225,6 +225,7 @@ img {
   font-size: clamp(2.15rem, 3.1vw, 4.15rem);
   line-height: 1.02;
   letter-spacing: 0;
+  overflow-wrap: break-word;
 }
 
 .slide-subtitle {
@@ -242,7 +243,7 @@ img {
   overflow-x: hidden;
   overscroll-behavior: contain;
   touch-action: pan-y;
-  padding: clamp(22px, 3vh, 34px) 0 clamp(28px, 4vh, 46px);
+  padding: clamp(18px, 2.5vh, 28px) 0 clamp(28px, 4vh, 46px);
   scrollbar-width: thin;
 }
 
@@ -548,6 +549,10 @@ td:last-child {
   gap: 12px;
 }
 
+.layout.wide .pipeline {
+  grid-template-columns: repeat(auto-fit, minmax(430px, 1fr));
+}
+
 .pipeline-step,
 .sequence-step {
   display: grid;
@@ -822,7 +827,7 @@ td:last-child {
 
   .slide-inner {
     width: calc(100% - 28px);
-    grid-template-rows: 178px minmax(0, 1fr);
+    grid-template-rows: 168px minmax(0, 1fr);
   }
 
   .slide-head {
@@ -830,16 +835,27 @@ td:last-child {
   }
 
   .slide-title {
-    font-size: clamp(1.8rem, 8.7vw, 2.75rem);
+    font-size: clamp(1.55rem, 7.6vw, 2.25rem);
+    line-height: 1.08;
   }
 
   .slide-subtitle {
-    font-size: 1rem;
+    font-size: 0.94rem;
   }
 
   .slide-body {
-    padding: 18px 0 34px;
+    padding: 14px 0 34px;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .lead {
+    font-size: 1rem;
+    line-height: 1.44;
+  }
+
+  .bullets {
+    font-size: 0.94rem;
+    line-height: 1.45;
   }
 
   .cards,
@@ -857,5 +873,13 @@ td:last-child {
 
   table {
     min-width: 640px;
+  }
+}
+
+@media (max-width: 520px) {
+  .slide-inner {
+    width: min(402px, calc(100% - 28px));
+    margin-left: 14px;
+    margin-right: auto;
   }
 }
