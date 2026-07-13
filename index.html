@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ASAP: Sim-to-Real Physics Alignment for Agile Humanoids</title>
+    <meta
+      name="description"
+      content="English lab presentation deck for ASAP: Aligning Simulation and Real-World Physics for Learning Agile Humanoid Whole-Body Skills"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar" aria-label="Presentation navigation">
+      <div class="top-row">
+        <a class="brand" href="#slide-1" aria-label="Go to first slide">
+          <span class="brand-mark"></span>
+          <span>ASAP</span>
+        </a>
+        <nav class="section-nav" id="sectionNav" aria-label="Major sections"></nav>
+        <div class="controls" aria-label="Slide controls">
+          <button type="button" id="prevSlide" aria-label="Previous slide">‹</button>
+          <span id="slideCounter">1 / 1</span>
+          <button type="button" id="nextSlide" aria-label="Next slide">›</button>
+        </div>
+      </div>
+      <nav class="chapter-nav" id="chapterNav" aria-label="Section chapters"></nav>
+    </header>
+
+    <main class="deck" id="deck" aria-live="polite"></main>
+
+    <div class="progress" aria-hidden="true">
+      <span id="progressBar"></span>
+    </div>
+
+    <script src="deck-data.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
