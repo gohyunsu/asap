@@ -389,11 +389,12 @@ window.ASAP_DECK = {
       },
       points: [
         `The actor is <strong>phase-based</strong>: timing information tells the controller where it is in the motion.`,
+        `The actor observes a <strong>5-step history</strong> of joint state, root angular velocity, projected gravity, previous action, and phase.`,
         `Because the actor does not depend on position-based motion targets, the policy avoids odometry dependence at deployment.`,
         `The deployed actor outputs <strong>23-dimensional target joint positions</strong>, while the critic receives additional privileged reference information during PPO training.`,
       ],
       ...note(
-        "이 슬라이드는 stage 1 policy의 실제 설계를 담고 있습니다. actor는 5-step proprioceptive history와 phase variable을 보고 23차원 target joint position을 출력하고, 이 값은 PD controller로 내려갑니다. critic은 여기에 reference global position과 root linear velocity 같은 privileged information을 더 봅니다. 그리고 이 전체 policy는 PPO로 학습됩니다. 즉 paper의 핵심 policy는 phase-based motion tracking policy이고, delta action도 결국 이 action interface 위에서 작동합니다.",
+        "stage 1 policy의 실제 설계는 여기 적힌 그대로입니다. actor는 5-step proprioceptive history와 phase variable을 보고 23차원 target joint position을 출력하고, 이 값은 PD controller로 내려갑니다. critic은 여기에 reference global position과 root linear velocity 같은 privileged information을 더 봅니다. 그리고 이 전체 policy는 PPO로 학습됩니다. 즉 paper의 핵심 policy는 phase-based motion tracking policy이고, delta action도 결국 이 action interface 위에서 작동합니다.",
         "POMDP는 정책이 환경의 완전한 상태를 모두 관측할 수 없는 설정입니다. real humanoid control에서는 외부 절대 위치나 완전한 reference state를 actor가 항상 알 수 없기 때문에 POMDP로 보는 것이 자연스럽습니다.\n\nasymmetric actor-critic은 actor와 critic이 서로 다른 관측을 쓰는 구조입니다. actor는 실제 배포 가능한 입력만 쓰고, critic은 시뮬레이터에서만 볼 수 있는 privileged information을 추가로 써서 학습을 안정화합니다.\n\nPPO는 clipped objective를 쓰는 on-policy policy gradient 계열 알고리즘이고, PD controller는 high-level target joint position을 low-level motor command로 바꾸는 고전적인 feedback controller입니다.",
         [
           qa("왜 phase variable이 꼭 필요한가요?", "비슷한 pose라도 motion의 앞부분인지 뒷부분인지에 따라 다음 action이 달라지기 때문입니다. phase는 그 timing context를 제공합니다."),
@@ -449,7 +450,7 @@ window.ASAP_DECK = {
         `The termination threshold is explicitly annealed from <strong>1.5 m</strong> to <strong>0.3 m</strong> as tracking improves.`,
       ],
       ...note(
-        "이 슬라이드는 저자들이 stable pretraining의 핵심이라고 직접 강조한 선택들입니다. termination threshold를 처음에는 1.5미터로 느슨하게 두고 나중에 0.3미터까지 조이는 curriculum을 사용하고, RSI로 motion phase를 랜덤 초기화해서 landing과 recovery를 초반부터 병렬로 학습하게 만듭니다. 이 두 가지가 없으면 jump나 single-leg balance 같은 동작은 초반 실패만 반복하고 후반 phase를 거의 보지 못하게 됩니다.",
+        "저자들이 stable pretraining의 핵심이라고 직접 강조한 선택들이 바로 이 네 가지입니다. termination threshold를 처음에는 1.5미터로 느슨하게 두고 나중에 0.3미터까지 조이는 curriculum을 사용하고, RSI로 motion phase를 랜덤 초기화해서 landing과 recovery를 초반부터 병렬로 학습하게 만듭니다. 이 두 가지가 없으면 jump나 single-leg balance 같은 동작은 초반 실패만 반복하고 후반 phase를 거의 보지 못하게 됩니다.",
         "Reference State Initialization, 즉 RSI는 episode를 항상 motion의 시작점에서만 열지 않고, reference의 임의 phase에서 시작하도록 하는 기법입니다. 이렇게 하면 어려운 모션의 뒷부분, 특히 착지와 회복 구간을 초반부터 충분히 학습할 수 있습니다.\n\ntermination curriculum은 실패 판정을 점점 엄격하게 만드는 방식입니다. 먼저 대강 균형을 잡게 만들고, 그 다음 더 정확한 tracking을 요구하는 순서로 난이도를 올립니다.",
         [
           qa("왜 sequence learning처럼 처음부터 끝까지 순서대로 학습시키지 않나요?", "점프처럼 뒷부분이 특히 어려운 모션은 landing을 못 배우면 전체 sequence를 영원히 끝까지 못 보기 때문입니다."),
@@ -525,9 +526,10 @@ window.ASAP_DECK = {
         `The reward minimizes next-state discrepancy to <strong>sʳ_{t+1}</strong> while regularizing action magnitude.`,
         `The delta policy itself is trained with <strong>PPO</strong>, not by one-step supervised fitting alone.`,
         `This choice preserves the <strong>same control interface</strong> used later by the motion-tracking policy.`,
+        `The paper also adds an action-magnitude regularization term of the form <strong>exp(-‖a_t‖) - 1</strong> during residual-policy training.`,
       ],
       ...note(
-        "이 슬라이드가 ASAP의 핵심 수식입니다. simulator를 real state에서 시작시키고, 실제로 기록된 action aʳ_t에 state-dependent corrective action Δa_t를 더합니다. 그리고 그렇게 만든 simulator next state가 실제 next state sʳ_{t+1}에 가까워지도록 πΔ를 학습합니다. 즉 residual dynamics를 next state 쪽에서 직접 보정하는 것이 아니라, simulator가 받는 effective action을 보정하는 방식입니다.",
+        "ASAP의 핵심 수식은 이 residual action formulation입니다. simulator를 real state에서 시작시키고, 실제로 기록된 action aʳ_t에 state-dependent corrective action Δa_t를 더합니다. 그리고 그렇게 만든 simulator next state가 실제 next state sʳ_{t+1}에 가까워지도록 πΔ를 학습합니다. 즉 residual dynamics를 next state 쪽에서 직접 보정하는 것이 아니라, simulator가 받는 effective action을 보정하는 방식입니다.",
         "delta action model은 현재 state와 nominal action을 받아 corrective action을 출력하는 residual policy입니다. delta dynamics model은 보통 next state residual을 직접 예측하는 쪽을 말합니다. ASAP은 후자보다 전자를 택해 control interface와의 연결을 유지합니다.\n\n여기서 다시 PPO를 쓰는 이유는 rollout horizon을 가진 RL objective로 residual policy를 학습해 장기적인 replay mismatch까지 줄이려는 의도 때문입니다.",
         [
           qa("왜 residual을 supervised next-state regression으로 바로 학습하지 않나요?", "저자들은 horizon이 있는 dynamics compensation과 action regularization을 함께 다루기 위해 RL formulation을 선택합니다."),
@@ -555,9 +557,10 @@ window.ASAP_DECK = {
         `Compared with pretraining, the torque penalty is much smaller (<strong>-0.1</strong> instead of <strong>-5.0</strong>) because πΔ is not the whole controller.`,
         `An explicit <strong>action-norm penalty</strong> is added so the residual remains corrective rather than dominating the base action.`,
         `Task-side weights are flattened to <strong>1.0 / 0.5</strong>-scale terms because the goal is transition correction rather than full behavior synthesis.`,
+        `The regularization block is minimal: only <strong>action rate -0.01</strong> and <strong>action norm -0.2</strong> are retained.`,
       ],
       ...note(
-        "Table II를 보면 delta action learning reward는 pretraining reward와 성격이 다릅니다. 여기서 πΔ는 전체 motion을 생성하는 policy가 아니라, base action을 얼마나 수정할지 결정하는 residual policy이기 때문에 torque penalty가 훨씬 약해지고, 대신 action norm penalty가 명시적으로 들어갑니다. task-side tracking term은 여전히 body position, rotation, velocity, joint position 같은 항목으로 구성되지만, 전체 목적은 motion generation이 아니라 transition correction입니다.",
+        "Table II를 보면 delta action learning reward는 pretraining reward와 성격이 다릅니다. 여기서 πΔ는 전체 motion을 생성하는 policy가 아니라, base action을 얼마나 수정할지 결정하는 residual policy이기 때문에 torque penalty가 훨씬 약해지고, 대신 action norm penalty가 명시적으로 들어갑니다. regularization도 action rate와 action norm 두 항목으로 단순화돼 있습니다. task-side tracking term은 여전히 body position, rotation, velocity, joint position 같은 항목으로 구성되지만, 전체 목적은 motion generation이 아니라 transition correction입니다.",
         "action norm regularization은 residual이 너무 커져서 base policy를 덮어쓰지 않도록 막는 장치입니다. 즉 correction은 필요하지만, correction이 nominal command를 completely replace하도록 만들지는 않겠다는 제약으로 이해하면 됩니다.",
         [qa("왜 torque penalty를 이렇게 줄이나요?", "πΔ는 원래 action에 덧붙는 correction이기 때문에, pretraining policy만큼 강한 actuation penalty를 주면 필요한 보정까지 억누를 수 있기 때문입니다.")],
       ),
@@ -651,12 +654,16 @@ window.ASAP_DECK = {
       layout: "wide",
       visual: {
         type: "table",
-        headers: ["Method", "IsaacSim E_g / E_m", "IsaacSim E_acc / E_vel", "Genesis E_g / E_m", "Genesis E_acc / E_vel"],
+        headers: ["Length", "Method", "IsaacSim E_g / E_m", "Genesis E_g / E_m"],
         rows: [
-          ["OpenLoop", "80.8 / 43.5", "10.6 / 11.1", "82.5 / 44.5", "10.8 / 11.4"],
-          ["SysID", "77.6 / 41.5", "10.2 / 10.7", "76.5 / 41.6", "10.0 / 10.5"],
-          ["DeltaDynamics", "68.1 / 21.5", "9.61 / 9.14", "50.2 / 17.2", "8.19 / 7.62"],
-          ["ASAP", "37.9 / 22.9", "4.38 / 5.26", "36.9 / 22.6", "4.23 / 5.10"],
+          ["0.25 s", "OpenLoop", "19.5 / 15.1", "19.8 / 15.3"],
+          ["0.25 s", "ASAP", "19.9 / 15.6", "19.0 / 14.9"],
+          ["0.5 s", "OpenLoop", "33.3 / 23.2", "33.1 / 23.0"],
+          ["0.5 s", "ASAP", "26.8 / 19.2", "25.9 / 18.4"],
+          ["1.0 s", "OpenLoop", "80.8 / 43.5", "82.5 / 44.5"],
+          ["1.0 s", "SysID", "77.6 / 41.5", "76.5 / 41.6"],
+          ["1.0 s", "DeltaDynamics", "68.1 / 21.5", "50.2 / 17.2"],
+          ["1.0 s", "ASAP", "37.9 / 22.9", "36.9 / 22.6"],
         ],
       },
       points: [
@@ -666,7 +673,7 @@ window.ASAP_DECK = {
         `At <strong>0.5 s</strong>, ASAP is also strongest on IsaacSim global error (<strong>26.8</strong> versus <strong>33.3</strong> for OpenLoop) while keeping acceleration and velocity errors lowest.`,
       ],
       ...note(
-        "Table III에서 가장 볼 가치가 큰 줄은 1.0초 replay입니다. horizon이 길어질수록 dynamics mismatch가 누적되기 때문에 method 간 차이가 가장 분명해집니다. 여기서 ASAP은 IsaacSim 기준 E_g-mpjpe를 80.8에서 37.9로 줄이고, Genesis 기준으로도 82.5에서 36.9로 줄입니다. E_acc와 E_vel도 각각 4점대와 5점대로 가장 낮습니다. 즉 단순히 pose 한두 프레임이 아니라, rollout 전체의 transition quality가 좋아졌다고 읽을 수 있습니다.",
+        "Table III는 horizon이 늘어날수록 method 차이가 어떻게 벌어지는지를 잘 보여줍니다. 0.25초에서는 거의 차이가 없지만, 0.5초부터 ASAP이 OpenLoop보다 확실히 낮은 global error를 보이기 시작하고, 1.0초에서는 그 차이가 매우 커집니다. 특히 IsaacSim 기준 E_g-mpjpe가 80.8에서 37.9로, Genesis 기준 82.5에서 36.9로 줄어든다는 점이 핵심입니다. 즉 단순히 one-step fit이 아니라 rollout 전체의 transition quality가 좋아졌다고 읽을 수 있습니다.",
         "long-horizon replay가 중요한 이유는 local one-step fit만 잘하는 모델과, 시간이 지나도 drift를 덜 일으키는 모델을 구분해 주기 때문입니다. transfer에서는 후자가 훨씬 중요합니다.",
         [
           qa("왜 DeltaDynamics는 E_m이 낮은데도 ASAP보다 약하다고 보나요?", "local joint pose error가 낮아도 global drift와 long-horizon stability가 남아 있으면 closed-loop transfer에는 불리할 수 있기 때문입니다."),
@@ -698,27 +705,28 @@ window.ASAP_DECK = {
     {
       section: "evidence",
       chapter: "Simulation",
-      title: "Hard-Level Results from Table IV",
-      subtitle: "The hard split is the most useful row because it exposes cumulative contact and balance errors.",
+      title: "Representative Rows from Table IV",
+      subtitle: "Representative rows show that the gain grows with task difficulty, especially in Genesis.",
       layout: "wide",
       visual: {
         type: "table",
-        headers: ["Method", "IsaacSim Succ / E_g / E_m", "Genesis Succ / E_g / E_m"],
+        headers: ["Setting", "Vanilla Succ / E_g / E_m", "ASAP Succ / E_g / E_m", "Reading"],
         rows: [
-          ["Vanilla", "100 / 148 / 51.6", "82.9 / 175 / 80.7"],
-          ["SysID", "100 / 165 / 58.4", "100 / 186 / 93.0"],
-          ["DeltaDynamics", "66.7 / 137 / 60.2", "60.0 / 190 / 89.6"],
-          ["ASAP", "100 / 129 / 56.5", "100 / 129 / 77.0"],
+          ["Easy / IsaacSim", "100 / 107 / 45.4", "100 / 106 / 44.3", "The task is already easy, so the gain is modest."],
+          ["Easy / Genesis", "100 / 140 / 70.1", "100 / 125 / 73.5", "Global tracking improves even when success is already saturated."],
+          ["Medium / Genesis", "94.3 / 169 / 72.0", "100 / 126 / 71.2", "Success and global tracking both improve materially."],
+          ["Hard / IsaacSim", "100 / 148 / 51.6", "100 / 129 / 56.5", "Global error decreases under the hardest simulator dynamics."],
+          ["Hard / Genesis", "82.9 / 175 / 80.7", "100 / 129 / 77.0", "This is the clearest closed-loop transfer gain in the table."],
         ],
       },
       points: [
         `In hard Genesis motions, ASAP improves <strong>E_g-mpjpe 175 → 129</strong> and restores success from <strong>82.9% → 100%</strong>.`,
-        `DeltaDynamics sometimes lowers one metric but loses too much success rate to be operationally attractive.`,
+        `The practical pattern is that gains are small when the task is already easy, but become substantial once simulator mismatch starts to accumulate.`,
       ],
       ...note(
-        "Table IV에서 hard split만 따로 빼서 보면 논문의 메시지가 더 선명해집니다. Genesis hard motions 기준으로 Vanilla는 success 82.9%, E_g-mpjpe 175, E_mpjpe 80.7인데, ASAP은 success 100%, E_g-mpjpe 129, E_mpjpe 77.0입니다. 반면 DeltaDynamics는 일부 오차 지표만 보면 괜찮아 보여도 success가 60%까지 떨어지기 때문에 실제 배포 관점에서는 받아들이기 어렵습니다.",
+        "Table IV를 representative row로 읽으면 논문의 메시지가 더 분명해집니다. Easy IsaacSim처럼 이미 쉬운 조건에서는 개선 폭이 크지 않지만, Medium Genesis와 Hard Genesis로 갈수록 ASAP의 이득이 커집니다. 특히 Hard Genesis에서 success가 82.9%에서 100%로 회복되고, E_g-mpjpe가 175에서 129로 줄어드는 것이 가장 강한 evidence입니다.",
         "E_g와 E_m을 함께 보는 이유는 global drift와 local pose quality를 분리하기 위해서입니다. hard transfer에서는 이 둘 중 하나만 좋아서는 충분하지 않고, success rate까지 같이 봐야 합니다.",
-        [qa("왜 SysID는 hard Genesis에서 오히려 Vanilla보다 나빠지나요?", "전역 parameter tuning이 local, state-dependent bias를 충분히 담지 못하면 특정 difficulty regime에서 오히려 cumulative error를 키울 수 있기 때문입니다.")],
+        [qa("왜 난이도가 높아질수록 ASAP의 이득이 커지나요?", "작은 dynamics mismatch가 hard motion에서는 contact timing과 recovery failure로 더 빠르게 증폭되기 때문입니다.")],
       ),
     },
     {
