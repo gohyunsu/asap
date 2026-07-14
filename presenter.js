@@ -93,12 +93,20 @@ function renderScript(index) {
 
   presenterScript.innerHTML = scriptBlocks
     .map(
-      (block) => `
+      (block) => {
+        const detailHtml = String(block.detail || "")
+          .split(/\n\s*\n/)
+          .filter(Boolean)
+          .map((paragraph) => `<p class="presenter-script-detail">${paragraph}</p>`)
+          .join("");
+
+        return `
         <article class="presenter-script-item">
           ${block.speak ? `<p class="presenter-script-speak"><strong>${block.speak}</strong></p>` : ""}
-          ${block.detail ? `<p class="presenter-script-detail">${block.detail}</p>` : ""}
+          ${detailHtml}
         </article>
-      `,
+      `;
+      },
     )
     .join("");
 }
