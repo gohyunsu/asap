@@ -6,6 +6,7 @@ const counter = document.getElementById("slideCounter");
 const progress = document.getElementById("progressBar");
 const prevButton = document.getElementById("prevSlide");
 const nextButton = document.getElementById("nextSlide");
+const topbar = document.querySelector(".topbar");
 
 const sectionByKey = Object.fromEntries(deckData.sections.map((section) => [section.key, section]));
 let slides = [];
@@ -15,8 +16,44 @@ function currentSlide() {
   return deckData.slides[currentIndex];
 }
 
+function syncTopbarHeight() {
+  if (!topbar) {
+    return;
+  }
+
+  document.documentElement.style.setProperty("--topbar-h", `${Math.ceil(topbar.getBoundingClientRect().height)}px`);
+}
+
 function firstSlideIndex(predicate) {
   return deckData.slides.findIndex(predicate);
+}
+
+function currentScrollContainer() {
+  return deck;
+}
+
+function canScrollWithinSlide(direction) {
+  const container = currentScrollContainer();
+
+  if (!container) {
+    return false;
+  }
+
+  const remainingDown = container.scrollHeight - container.clientHeight - container.scrollTop;
+  const remainingUp = container.scrollTop;
+
+  return direction > 0 ? remainingDown > 6 : remainingUp > 6;
+}
+
+function scrollWithinSlide(direction) {
+  const container = currentScrollContainer();
+
+  if (!container) {
+    return;
+  }
+
+  const amount = Math.max(180, Math.floor(container.clientHeight * 0.84));
+  container.scrollBy({ top: direction * amount, behavior: "smooth" });
 }
 
 function renderTextList(items = []) {
@@ -267,7 +304,6 @@ function renderVisual(visual) {
 }
 
 function renderSlide(slide, index) {
-  const section = sectionByKey[slide.section];
   const visual = renderVisual(slide.visual);
   const hasCopy = Boolean(
     slide.lead ||
@@ -285,7 +321,7 @@ function renderSlide(slide, index) {
     <section class="slide" id="slide-${index + 1}" data-section="${slide.section}" data-chapter="${slide.chapter}">
       <div class="slide-inner">
         <header class="slide-head">
-          <p class="kicker">${section.label} / ${slide.chapter}</p>
+          ${slide.role ? `<p class="kicker">${slide.role}</p>` : ""}
           <h1 class="slide-title">${slide.title}</h1>
           ${slide.subtitle ? `<p class="slide-subtitle">${slide.subtitle}</p>` : ""}
         </header>
@@ -349,7 +385,7 @@ function updateState(index) {
     slideElement.classList.toggle("active", slideIndex === currentIndex);
   });
 
-  slides[currentIndex]?.querySelector(".slide-body")?.scrollTo({ top: 0, behavior: "auto" });
+  currentScrollContainer()?.scrollTo({ top: 0, behavior: "auto" });
   counter.textContent = `${currentIndex + 1} / ${slides.length}`;
   progress.style.width = `${((currentIndex + 1) / slides.length) * 100}%`;
 
@@ -361,6 +397,7 @@ function updateState(index) {
   chapterNav.querySelectorAll("button").forEach((button) => {
     button.classList.toggle("active", button.dataset.chapter === slide.chapter);
   });
+  syncTopbarHeight();
 }
 
 function goToSlide(index, updateHash = true) {
@@ -398,30 +435,69 @@ function wireInteractions() {
       return;
     }
 
-    if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") {
+    if (event.key === "ArrowRight") {
       event.preventDefault();
       goToSlide(currentIndex + 1);
     }
 
-    if (event.key === "ArrowLeft" || event.key === "PageUp") {
+    if (event.key === "ArrowLeft") {
       event.preventDefault();
       goToSlide(currentIndex - 1);
     }
 
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (canScrollWithinSlide(1)) {
+        scrollWithinSlide(1);
+      } else {
+        goToSlide(currentIndex + 1);
+      }
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (canScrollWithinSlide(-1)) {
+        scrollWithinSlide(-1);
+      } else {
+        goToSlide(currentIndex - 1);
+      }
+    }
+
+    if (event.key === "PageDown" || event.key === " ") {
+      event.preventDefault();
+      if (canScrollWithinSlide(1)) {
+        scrollWithinSlide(1);
+      } else {
+        goToSlide(currentIndex + 1);
+      }
+    }
+
+    if (event.key === "PageUp") {
+      event.preventDefault();
+      if (canScrollWithinSlide(-1)) {
+        scrollWithinSlide(-1);
+      } else {
+        goToSlide(currentIndex - 1);
+      }
+    }
+
     if (event.key === "Home") {
       event.preventDefault();
-      goToSlide(0);
+      currentScrollContainer()?.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     if (event.key === "End") {
       event.preventDefault();
-      goToSlide(slides.length - 1);
+      currentScrollContainer()?.scrollTo({ top: currentScrollContainer().scrollHeight, behavior: "smooth" });
     }
   });
+
+  window.addEventListener("resize", syncTopbarHeight);
 }
 
 renderDeck();
 wireInteractions();
+syncTopbarHeight();
 updateState(0);
 syncFromHash();
 
