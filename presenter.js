@@ -3,14 +3,12 @@ const sectionByKey = Object.fromEntries(deckData.sections.map((section) => [sect
 const syncChannel =
   typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("asap-presenter-sync") : null;
 const syncSourceId = `presenter-${Math.random().toString(36).slice(2, 10)}`;
-const notesStorageKey = "asap-ko-extra-memo-v1";
 
 const presenterCounter = document.getElementById("presenterCounter");
 const presenterSection = document.getElementById("presenterSection");
 const presenterSlideTitle = document.getElementById("presenterSlideTitle");
 const presenterSlideSubtitle = document.getElementById("presenterSlideSubtitle");
 const presenterScript = document.getElementById("presenterScript");
-const presenterNotes = document.getElementById("presenterNotes");
 const presenterQa = document.getElementById("presenterQa");
 const presenterNextTitle = document.getElementById("presenterNextTitle");
 const presenterPrev = document.getElementById("presenterPrev");
@@ -18,27 +16,9 @@ const presenterNext = document.getElementById("presenterNext");
 const openDeckLink = document.getElementById("openDeckLink");
 
 let currentIndex = 0;
-let notesStore = loadNotesStore();
-
-function loadNotesStore() {
-  try {
-    const raw = window.localStorage.getItem(notesStorageKey);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
-
-function persistNotesStore() {
-  window.localStorage.setItem(notesStorageKey, JSON.stringify(notesStore));
-}
 
 function currentSlide() {
   return deckData.slides[currentIndex];
-}
-
-function noteKey(index) {
-  return `slide-${index + 1}`;
 }
 
 function normalizeScriptBlocks(slide) {
@@ -76,14 +56,6 @@ function normalizeScriptBlocks(slide) {
   }
 
   return [];
-}
-
-function noteValueFor(index) {
-  const stored = notesStore[noteKey(index)];
-  if (typeof stored === "string") {
-    return stored;
-  }
-  return "";
 }
 
 function qaValueFor(index) {
@@ -142,7 +114,6 @@ function renderPresenter() {
   presenterSlideSubtitle.textContent = slide.subtitle || "";
   presenterSlideSubtitle.hidden = !slide.subtitle;
   renderScript(currentIndex);
-  presenterNotes.value = noteValueFor(currentIndex);
   renderQa(currentIndex);
   presenterNextTitle.textContent = nextSlide ? nextSlide.title : "마지막 슬라이드";
 }
@@ -172,11 +143,6 @@ function handleSyncMessage(message) {
     setCurrentIndex(message.index, false);
   }
 }
-
-presenterNotes.addEventListener("input", () => {
-  notesStore[noteKey(currentIndex)] = presenterNotes.value;
-  persistNotesStore();
-});
 
 presenterPrev.addEventListener("click", () => setCurrentIndex(currentIndex - 1, true));
 presenterNext.addEventListener("click", () => setCurrentIndex(currentIndex + 1, true));

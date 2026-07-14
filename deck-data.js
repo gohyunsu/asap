@@ -1118,7 +1118,232 @@ const PRESENTER_NOTES_BY_TITLE = {
   },
 };
 
-window.ASAP_DECK.slides = window.ASAP_DECK.slides.map((slide) => ({
-  ...slide,
-  ...(PRESENTER_NOTES_BY_TITLE[slide.title] || {}),
-}));
+const PRESENTER_DETAIL_BY_TITLE = {
+  ASAP: `여기서 agile whole-body skill은 보행처럼 반복적인 저난도 동작이 아니라, 점프·킥·착지처럼 전신 협응과 접촉 타이밍이 중요한 동작을 뜻합니다. Unitree G1은 이 논문이 실제 전이를 검증하는 대상 로봇이고, 발표에서는 '어떤 로봇에 어떤 종류의 동작을 옮기려는가'를 먼저 분명히 해두는 것이 좋습니다.`,
+  "What the paper is trying to preserve": `closed-loop execution은 한 번 모션을 재생하는 것이 아니라, 현재 상태를 계속 읽으면서 다음 action을 다시 계산하는 제어를 뜻합니다. 그래서 style보다 더 중요한 기준은 착지 후 회복, 다음 동작으로의 연결, 균형 재획득 같은 연속적 안정성입니다.`,
+  "The bottleneck is no longer motion generation": `reference motion reconstruction은 영상이나 모션 데이터에서 사람 동작을 구조화된 시퀀스로 복원하는 과정입니다. 즉 이 슬라이드는 '행동의 원본을 만드는 기술'은 이미 많이 발전했고, 남은 병목이 실제 물리와의 불일치라는 점을 짚는 역할을 합니다.`,
+  "Core mechanism": `action residual은 정책이 낸 action에 상태 의존적인 보정값을 더해, simulator가 실제 하드웨어에 더 가까운 결과를 내도록 만드는 모듈입니다. fine-tuning은 그 보정된 물리 안에서 정책을 다시 학습시키는 단계이고, 최종 배포는 이 재학습된 정책 하나로 끝납니다.`,
+  "Why this problem matters now": `이 슬라이드의 stack은 최근 humanoid 연구가 어디까지 성숙했는지를 보여줍니다. reference motion, whole-body control, deployment 준비가 강해질수록 오히려 마지막 interface인 simulator physics와 hardware physics의 차이가 더 눈에 띄게 남습니다.`,
+  "Agile whole-body skills expose mismatch early": `impact timing은 접촉이 한 프레임만 늦어도 다음 상태가 완전히 달라지는 현상을 말합니다. hidden compliance는 발, 발목, 링크가 시뮬레이터보다 더 유연하게 반응하는 실제 하드웨어 특성이고, 이런 요소가 짧은 시간 안에 겹치면서 mismatch를 확대합니다.`,
+  "A useful reading frame for this literature": `motion source는 행동이 어디에서 왔는지, control objective는 정책이 정확히 무엇을 보존하려는지, transfer strategy는 sim-to-real gap을 어떻게 다루는지, real evidence는 무엇을 성공 증거로 볼지를 뜻합니다. 이 네 축으로 읽으면 관련 연구가 한눈에 정리됩니다.`,
+  "DeepMimic established the imitation-learning template": `reference-tracking RL template은 목표 모션을 주고, 그 모션을 따라가도록 reward를 설계한 뒤 RL로 폐루프 정책을 학습시키는 전형적인 구조입니다. DeepMimic은 이 구조를 동적 전신 동작에 설득력 있게 보여준 대표 사례입니다.`,
+  "AMP made motion priors a first-class control signal": `motion prior는 '어떤 동작이 자연스러운가'에 대한 학습된 선호라고 볼 수 있습니다. AMP는 discriminator 기반 보상으로 이 prior를 정책 학습에 직접 연결했고, 결과적으로 손으로 일일이 style reward를 짜지 않아도 richer behavior를 만들 수 있음을 보였습니다.`,
+  "HumanPlus highlights real humanoid imitation and deployment": `이 슬라이드에서 deployment story라는 표현은 실제 인간 행동을 로봇에서 실행 가능하게 만드는 전체 시스템 관점을 뜻합니다. ASAP은 그 전체 중에서도 특히 simulator alignment와 transfer 메커니즘을 더 정밀하게 다루는 쪽에 가깝습니다.`,
+  "Humanoid Parkour pushes dynamic task difficulty from another direction": `agility pressure는 과제가 요구하는 동적 난도, 즉 속도·충격·장기 contact sequence가 controller를 얼마나 몰아붙이는지를 뜻합니다. Parkour류 문제는 이 압력을 크게 높여 transfer 문제가 빨리 드러나게 만듭니다.`,
+  "Classical transfer baselines attack the gap differently": `system identification은 질량·마찰 같은 simulator parameter를 맞추는 접근이고, domain randomization은 다양한 파라미터 분포에서 정책을 훈련해 넓게 버티게 만드는 접근입니다. state residual은 상태 예측 오차를 직접 보정하지만, ASAP은 제어 입력이 실제로 어떻게 왜곡되는지를 더 직접적으로 다룹니다.`,
+  "ASAP's academic position": `이 포지셔닝 맵은 정밀한 정량 그래프가 아니라 학계 지형을 읽기 위한 개념도입니다. x축은 locomotion 중심인지 expressive whole-body 중심인지, y축은 simulation-centric인지 real deployment 중심인지에 대한 상대적 위치를 뜻합니다.`,
+  "The SOTA question here is precise": `richness는 행동의 표현력과 다양성, robustness는 dynamics가 바뀌어도 policy가 버티는 정도, evidence는 그 이득이 실제 하드웨어 폐루프 실행까지 이어지는지를 뜻합니다. 이 세 축을 분리하지 않으면 서로 다른 논문을 같은 기준으로 비교하기 어렵습니다.`,
+  "At this point, the paper's burden is clear": `burden이라는 표현은 이 논문이 무엇을 반드시 증명해야 하는지를 뜻합니다. 이미 reference generation과 simulator tracking이 강한 상황에서, ASAP은 imitation stack 전체가 아니라 마지막 transfer failure만 정확히 줄였다는 것을 보여줘야 합니다.`,
+  "Stage 1 begins with human motion, not robot demonstrations": `body reconstruction은 비디오에서 관절과 신체 구조를 복원해 학습 가능한 모션 표현으로 바꾸는 과정입니다. retargeting은 그 사람 중심 표현을 Unitree G1의 관절 구조와 길이에 맞게 변환하는 단계입니다.`,
+  "Reference preparation is not cosmetic": `shape fitting은 인체 형상 모델을 영상에 맞춰 사람의 자세와 체형을 추정하는 과정이고, retargeting은 그 결과를 로봇 관절 공간으로 옮기는 과정입니다. 이 단계가 부정확하면 뒤의 transfer 실패가 physics 문제인지 reference 문제인지 분리할 수 없습니다.`,
+  "The tracking policy is phase-aware and feedback-driven": `phase는 현재 motion cycle 안에서 시간이 어디쯤 진행됐는지를 나타내는 신호입니다. feedback-driven이라는 말은 policy가 현재 관절 상태, 속도, 균형 오차를 읽고 그때그때 보정 action을 낸다는 뜻으로, 단순 재생기와 구별됩니다.`,
+  "The reward balances fidelity and stability": `pose tracking은 관절 자세를, root tracking은 몸통의 전역 위치와 속도를, contact behavior는 발 지지와 착지 패턴을 맞추는 항입니다. regularization은 과도한 토크나 비현실적 움직임을 억제해 simulator exploit을 막는 역할을 합니다.`,
+  "Stage 1 already produces a strong simulator controller": `competent simulator policy라는 말은, 실제 전이만 없을 뿐 simulator 안에서는 이미 동작 구조와 timing을 꽤 잘 유지한다는 뜻입니다. 그래서 stage 2를 새로운 skill discovery가 아니라 transfer repair로 해석할 수 있습니다.`,
+  "Pretraining alone cannot reveal the missing hardware physics": `transition function은 현재 state와 action이 다음 state를 어떻게 만드는지를 정의하는 dynamics 자체입니다. simulator 안에서 잘된 정책은 이 함수가 틀렸다는 사실을 스스로 드러내지 못하므로, real rollout이 별도 감독 신호로 필요합니다.`,
+  "Real rollouts provide the missing supervision": `state-action-next-state tuple은 제어에서 가장 직접적인 물리 증거입니다. reward보다 더 근본적으로 '같은 명령을 줬을 때 실제 하드웨어가 어떻게 반응했는가'를 보여 주기 때문에 simulator alignment의 교사로 쓰기 적합합니다.`,
+  "Replay turns hardware experience into a training target": `replay는 하드웨어에서 모은 transition을 같은 입력으로 simulator에 다시 재생해 paired comparison을 가능하게 하는 절차입니다. 이렇게 하면 policy 차이와 dynamics 차이를 어느 정도 분리해서 볼 수 있습니다.`,
+  "ASAP models the gap in action space": `effective action은 정책이 의도한 명령이 실제 하드웨어에서 결과적으로 어떤 입력처럼 작용했는지를 뜻합니다. actuator delay, bandwidth limit, low-level control bias가 있으면 nominal action과 effective action이 달라질 수 있습니다.`,
+  "Why action residuals are attractive here": `local state-dependent bias는 특정 상태나 접촉 국면에서만 드러나는 오차를 뜻합니다. 이런 종류의 오차는 전역 파라미터 한두 개를 맞추는 것보다, action residual처럼 상태 조건부 보정으로 다루는 편이 더 자연스러운 경우가 많습니다.`,
+  "The aligned simulator is the key artifact": `aligned simulator는 residual을 내장한 뒤 실제와 더 비슷한 transition을 만드는 학습 환경입니다. 핵심은 real data 한 번으로 끝나는 것이 아니라, 그 이후 RL 전 과정을 더 정직한 물리 위에서 반복할 수 있게 된다는 점입니다.`,
+  "Fine-tuning is still a control problem, not just a fitting problem": `local transition fit이 좋아진다고 곧바로 장기 폐루프 behavior가 좋아지는 것은 아닙니다. RL 재학습이 필요한 이유는, 보정된 물리 아래에서 recovery timing, contact strategy, state visitation 자체가 다시 최적화되어야 하기 때문입니다.`,
+  "Deployment remains operationally simple": `runtime patch가 아니라는 말은, 별도 residual 모듈을 실시간으로 돌리지 않고 최종 정책만 로봇에 배포한다는 뜻입니다. 연구 단계의 복잡함을 runtime으로 넘기지 않는다는 점에서 실용성이 있습니다.`,
+  "What the residual is likely absorbing": `actuator lag는 명령과 실제 출력 사이의 시간 지연, contact bias는 지면 접촉 모델 차이, linkage effect는 링크와 관절 체인의 탄성·유격이 만들어내는 오차를 뜻합니다. 논문은 이를 완전한 모델 식별보다 control-relevant correction으로 해석하는 편이 타당합니다.`,
+  "Method summary": `이 슬라이드는 파이프라인을 다시 압축해서 기억에 남기기 위한 정리 슬라이드입니다. 핵심 동사는 pretrain, measure, align, fine-tune 네 개로 잡으면 전체 메커니즘을 짧게 복기하기 좋습니다.`,
+  "What convincing evidence should look like": `local dynamics matching은 one-step 수준에서 simulator가 실제 transition에 가까워졌는지를 뜻하고, closed-loop improvement는 그 보정이 장기 제어 성능까지 이어졌는지를 뜻합니다. 둘 다 있어야 method claim이 닫힙니다.`,
+  "The evaluation asks three separate questions": `replay, cross-simulator, real robot, ablation은 각각 simulator fidelity, controller transferability, 실제 운용 가치, 기여 요소 분해를 담당합니다. 네 결과 층이 합쳐져야 '왜 좋아졌는가'까지 설명할 수 있습니다.`,
+  "The first win is better transition matching": `replay error는 실제 next state와 보정된 simulator next state의 차이를 말합니다. contact timing이 tighter해졌다는 것은 착지나 발 접촉 시점이 hardware trace와 더 비슷해졌다는 뜻이고, 이는 민첩한 동작에서 특히 중요합니다.`,
+  "Then closed-loop transfer improves": `cross-simulator test는 하드웨어만 볼 때 생기는 변수들을 일부 제거하고, dynamics가 달라져도 aligned fine-tuning이 controller를 더 낫게 만드는지 보는 실험입니다. 즉 residual fitting이 아니라 policy quality 향상을 더 깨끗하게 드러내는 장치입니다.`,
+  "Hard motions are the right stress test": `failure-sensitive motion은 작은 timing error나 contact error가 바로 넘어짐으로 이어지는 동작을 말합니다. 점프와 explosive skill은 이런 민감도를 크게 만들어 transfer method의 진짜 차이를 드러냅니다.`,
+  "Real-robot data is scarce enough that data efficiency matters": `safety-limited budget은 하드웨어 롤아웃이 장비 손상, 리셋 시간, 감독 비용 때문에 매우 제한적이라는 뜻입니다. replay compatibility는 한번 모은 데이터를 simulator 쪽에서 여러 번 재사용할 수 있게 해주는 성질입니다.`,
+  "The main result is better closed-loop agility on hardware": `skill preservation은 원래 의도한 동작 구조가 실제에서도 유지되는지를, recovery quality는 mismatch 이후 자세를 얼마나 빨리 되살리는지를 뜻합니다. deployment complexity가 그대로 single policy라는 점은 실용성 측면의 장점입니다.`,
+  "Recovered agility is the point": `이 슬라이드는 정량보다 정성 해석이 더 중요한 hero slide입니다. 회복된 agility는 동작 시작이 아니라 접촉 이후의 자세 회복, 다음 동작으로의 연결, 무너지지 않는 timing에서 읽어야 합니다.`,
+  "Real-world execution is the decisive lens": `decisive lens라는 말은 모든 중간 결과가 결국 real-world closed-loop behavior로 수렴해야 한다는 뜻입니다. simulator alignment가 예쁘게 보이는지보다, 실제 로봇이 그 이득을 소유하는지가 결론입니다.`,
+  "More real data helps until the important mismatch has already been covered": `coverage는 단순히 데이터 양이 아니라, policy가 실제로 마주치는 중요한 실패 상황을 얼마나 포함했는지를 뜻합니다. 이후 연구로는 failure-focused data collection이나 active rollout selection과 자연스럽게 이어질 수 있습니다.`,
+  "How the delta is used matters as much as learning it": `broad perturbation은 여러 오차를 넓게 흩뿌려 robustness를 얻는 방식이고, aligned simulator는 측정된 bias가 simulator transition 안에 구조적으로 반영된 상태를 뜻합니다. ASAP은 후자를 통해 RL이 방향성 있는 적응을 하도록 만듭니다.`,
+  "The residual is structured rather than uniform": `structured residual은 모든 관절에 비슷한 noise를 거는 것이 아니라, 특정 관절·특정 국면에 correction이 집중된다는 뜻입니다. 이 구조성은 방법이 임의 흔들기가 아니라 물리적으로 의미 있는 편향을 잡았다는 간접 증거가 됩니다.`,
+  "What ASAP adds": `이 슬라이드의 before-during-after 구조는 novelty를 시간축으로 정리한 것입니다. 즉 기존 강한 정책이 어디서 깨졌고, 실제 데이터가 무엇을 가르쳤으며, 그 결과 배포 시 무엇이 달라졌는지를 순서대로 압축합니다.`,
+  "Where the method is strongest": `best case는 simulator policy가 이미 competent하지만 hardware dynamics에 brittle한 경우이고, weaker case는 simulator 자체가 전반적으로 틀렸거나 real rollout coverage가 너무 좁은 경우입니다. 이 경계 조건을 솔직히 말해 주는 것이 발표의 rigor를 높입니다.`,
+  "Limits and next comparisons": `coverage limit은 residual이 보지 못한 failure mode는 고칠 수 없다는 뜻이고, representation limit은 action residual이 모든 구조적 gap을 표현하진 못한다는 뜻입니다. 자연스러운 다음 단계는 broader motion set과 iterative refresh, 다른 로봇으로의 확장입니다.`,
+  Resources: `마지막 quote는 이 논문의 일반화 가능한 메시지를 압축한 문장입니다. simulator가 잘못된 physics를 가르치고 있다면 policy를 탓하기 전에 학습 환경부터 실제답게 만드는 것이 더 효과적일 수 있다는 교훈으로 받아들이면 됩니다.`,
+};
+
+function presenterStripHtml(value) {
+  return String(value || "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizePresenterScriptBlocks(script) {
+  if (Array.isArray(script) && script.every((item) => typeof item === "string")) {
+    if (script.length === 1) {
+      return [{ speak: script[0], detail: "" }];
+    }
+
+    const [speak, detail, ...rest] = script;
+    return [
+      {
+        speak,
+        detail: [detail, ...rest].filter(Boolean).join(" "),
+      },
+    ];
+  }
+
+  if (Array.isArray(script)) {
+    return script.map((item) =>
+      typeof item === "string" ? { speak: item, detail: "" } : { speak: item.speak || "", detail: item.detail || "" },
+    );
+  }
+
+  if (typeof script === "string") {
+    return [{ speak: script, detail: "" }];
+  }
+
+  return [];
+}
+
+function describePointListKo(slide) {
+  if (!Array.isArray(slide.points) || !slide.points.length) {
+    return "";
+  }
+
+  const items = slide.points.map((point, index) => `${index + 1}번째 bullet은 ${presenterStripHtml(point)}`);
+  return `슬라이드의 bullet은 순서대로 ${items.join(", ")}입니다.`;
+}
+
+function describeTupleItemsKo(items, intro, formatter) {
+  if (!Array.isArray(items) || !items.length) {
+    return "";
+  }
+
+  const body = items
+    .map((item, index) => formatter(item, index))
+    .filter(Boolean)
+    .join(" ");
+
+  return body ? `${intro} ${body}` : "";
+}
+
+function describeVisualKo(slide) {
+  const visual = slide.visual;
+  if (!visual) {
+    return "";
+  }
+
+  if (visual.type === "image" || visual.type === "video") {
+    return visual.caption ? `대표 시각 자료는 ${presenterStripHtml(visual.caption)}` : "";
+  }
+
+  if (visual.type === "cards" || visual.type === "terms") {
+    return describeTupleItemsKo(
+      visual.items,
+      visual.type === "terms" ? "화면의 용어 박스는" : "화면의 카드들은",
+      ([label, text], index) => `${index + 1}번째 ${presenterStripHtml(label)}는 ${presenterStripHtml(text)}를 뜻합니다.`,
+    );
+  }
+
+  if (visual.type === "formula") {
+    return describeTupleItemsKo(
+      visual.items,
+      "수식 블록은",
+      ([label, text], index) => `${index + 1}번째 ${presenterStripHtml(label)} 항이 ${presenterStripHtml(text)}를 나타냅니다.`,
+    );
+  }
+
+  if (visual.type === "pipeline") {
+    return describeTupleItemsKo(
+      visual.steps,
+      "파이프라인은",
+      ([label, text], index) => `${index + 1}단계 ${presenterStripHtml(label)}에서 ${presenterStripHtml(text)}`,
+    );
+  }
+
+  if (visual.type === "compare") {
+    return describeTupleItemsKo(
+      visual.rows,
+      "비교표는",
+      ([name, focus, text]) =>
+        `${presenterStripHtml(name)}가 ${presenterStripHtml(focus)}에 초점을 두고, 핵심 차이는 ${presenterStripHtml(text)}라는 점을 보여줍니다.`,
+    );
+  }
+
+  if (visual.type === "table") {
+    return describeTupleItemsKo(
+      visual.rows,
+      "표의 각 행은",
+      (row) => row.map((cell) => presenterStripHtml(cell)).join(" / "),
+    );
+  }
+
+  if (visual.type === "axis") {
+    const axes = `가로축은 ${presenterStripHtml(visual.xLeft)}에서 ${presenterStripHtml(visual.xRight)}까지, 세로축은 ${presenterStripHtml(visual.yBottom)}에서 ${presenterStripHtml(visual.yTop)}까지를 뜻합니다.`;
+    const points = describeTupleItemsKo(
+      visual.points,
+      "배치된 논문 점들은",
+      ([label]) => `${presenterStripHtml(label)}의 상대적 위치를 표시합니다.`,
+    );
+    return [axes, points].filter(Boolean).join(" ");
+  }
+
+  if (visual.type === "sequence") {
+    return describeTupleItemsKo(
+      visual.items,
+      "순차 블록은",
+      ([label, text], index) => `${index + 1}단계 ${presenterStripHtml(label)}에서 ${presenterStripHtml(text)}`,
+    );
+  }
+
+  if (visual.type === "metrics") {
+    return describeTupleItemsKo(
+      visual.items,
+      "지표 카드는",
+      ([label, value, text]) =>
+        `${presenterStripHtml(label)}가 ${presenterStripHtml(value)} 방향으로 바뀌고, 이는 ${presenterStripHtml(text)}를 의미합니다.`,
+    );
+  }
+
+  if (visual.type === "quote") {
+    return visual.text ? `마지막 인용문은 ${presenterStripHtml(visual.text)}` : "";
+  }
+
+  return "";
+}
+
+function enhancePresenterNotes(slide, notes) {
+  const scriptBlocks = normalizePresenterScriptBlocks(notes.scriptKo);
+  const extraDetails = [
+    PRESENTER_DETAIL_BY_TITLE[slide.title] || "",
+    describePointListKo(slide),
+    describeVisualKo(slide),
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (!scriptBlocks.length) {
+    return {
+      ...notes,
+      scriptKo: extraDetails ? [{ speak: "", detail: extraDetails }] : [],
+    };
+  }
+
+  const enrichedBlocks = scriptBlocks.map((block) => ({
+    speak: block.speak,
+    detail: block.detail,
+  }));
+
+  const lastBlock = enrichedBlocks[enrichedBlocks.length - 1];
+  lastBlock.detail = [lastBlock.detail, extraDetails].filter(Boolean).join(" ");
+
+  return {
+    ...notes,
+    scriptKo: enrichedBlocks,
+  };
+}
+
+window.ASAP_DECK.slides = window.ASAP_DECK.slides.map((slide) => {
+  const notes = PRESENTER_NOTES_BY_TITLE[slide.title] || {};
+  return {
+    ...slide,
+    ...enhancePresenterNotes(slide, notes),
+  };
+});
