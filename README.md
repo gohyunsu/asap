@@ -13,13 +13,13 @@ This is a static slide site. It uses a white, fixed-layout presentation style wi
 
 ## Structure
 
-1. Thesis
+1. Setting
 2. Landscape
-3. Pretraining
-4. Alignment
+3. Stage 1
+4. Stage 2
 5. Evidence
 6. Takeaways
 
 ## Notes
 
-The deck is intentionally compact and presentation-oriented. It keeps the fixed presentation format, restores a stronger related-work reading of the field, and focuses on the paper's core transfer argument without extra deck-level meta commentary.
+The deck is intentionally compact and presentation-oriented. The current version is a 36-slide deck that follows the paper's own stage structure, uses paper figures/tables/metrics aggressively, and keeps presenter notes focused on natural Korean delivery plus concept explanations for newly introduced terms.

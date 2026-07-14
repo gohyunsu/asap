@@ -5,814 +5,926 @@ const DEEPMIMIC_URL = "https://xbpeng.github.io/projects/DeepMimic/index.html";
 const AMP_URL = "https://xbpeng.github.io/projects/AMP/index.html";
 const PARKOUR_URL = "https://humanoid4parkour.github.io/";
 const HUMANPLUS_URL = "https://humanoid-ai.github.io/";
+const ASAP_HERO_VIDEO_URL =
+  "https://agile.human2humanoid.com/static/videos/Hero-ASAP-Video-Website-Hero-16-9-202502031028-1080P.mp4";
+
+function qa(question, answer) {
+  return [question, answer];
+}
+
+function note(speak, detail = "", qaKo = []) {
+  return {
+    scriptKo: [{ speak, detail }],
+    qaKo,
+  };
+}
+
+function paperImage(src, caption, alt = caption, extra = {}) {
+  return {
+    type: "image",
+    src,
+    alt,
+    caption,
+    source: PAPER_URL,
+    sourceLabel: "paper",
+    ...extra,
+  };
+}
+
+function projectImage(src, caption, alt = caption, extra = {}) {
+  return {
+    type: "image",
+    src,
+    alt,
+    caption,
+    source: PROJECT_URL,
+    sourceLabel: "project",
+    ...extra,
+  };
+}
+
+function projectVideo(src, caption, extra = {}) {
+  return {
+    type: "video",
+    src,
+    caption,
+    source: PROJECT_URL,
+    sourceLabel: "project",
+    ...extra,
+  };
+}
 
 window.ASAP_DECK = {
   title: "ASAP: Aligning Simulation and Real-World Physics",
-  subtitle: "A compact final-presentation deck on agile humanoid whole-body transfer",
+  subtitle: "Final-presentation deck focused on paper-grounded method, evidence, and practical transfer details",
   sections: [
     {
       key: "setup",
-      label: "1 Thesis",
-      chapters: ["Problem", "Mechanism"],
+      label: "1 Setting",
+      chapters: ["Task", "Method"],
     },
     {
       key: "landscape",
       label: "2 Landscape",
-      chapters: ["Why Now", "Related Work", "Positioning"],
+      chapters: ["Field", "Related Work", "Baselines"],
     },
     {
       key: "pretrain",
-      label: "3 Pretraining",
+      label: "3 Stage 1",
       chapters: ["Reference", "Policy", "Gap"],
     },
     {
       key: "alignment",
-      label: "4 Alignment",
-      chapters: ["Data", "Delta Model", "Fine-tuning"],
+      label: "4 Stage 2",
+      chapters: ["Data", "Alignment", "Fine-Tuning"],
     },
     {
       key: "evidence",
       label: "5 Evidence",
-      chapters: ["Design", "Results", "Ablations"],
+      chapters: ["Protocol", "Simulation", "Real World", "Analysis"],
     },
     {
       key: "takeaways",
       label: "6 Takeaways",
-      chapters: ["Summary", "Limits", "Resources"],
+      chapters: ["Interpretation", "Resources"],
     },
   ],
   slides: [
     {
       section: "setup",
-      chapter: "Problem",
+      chapter: "Task",
       title: "ASAP",
-      subtitle: "Aligning simulation and real-world physics for agile humanoid whole-body skills",
-      lead: "The paper addresses a narrow but important transfer problem: a motion-tracking policy looks strong in simulation, yet loses agility on hardware because the robot's effective physics is different.",
+      subtitle: "Aligning simulation and real-world physics for learning agile humanoid whole-body skills",
+      lead: "ASAP targets a narrow but important failure mode: a motion-tracking policy already looks competent in simulation, but loses agility after deployment because the effective hardware physics is different.",
       points: [
-        "<strong>Focus.</strong> Agile, whole-body reference tracking on the Unitree G1.",
-        "<strong>Claim.</strong> Use real rollouts to reshape the training simulator, then fine-tune the policy there.",
+        `<strong>Setting.</strong> The robot is Unitree G1, and the task is agile whole-body reference tracking rather than generic locomotion.`,
+        `<strong>Intervention.</strong> Real rollouts are used to train a delta action model, and the final policy is fine-tuned inside the aligned simulator with PPO.`,
       ],
-      visual: {
-        type: "image",
-        src: "assets/g1_motion.gif",
-        alt: "ASAP Unitree G1 whole-body motion tracking",
-        caption: "ASAP targets dynamic whole-body motion transfer on the Unitree G1.",
-        source: PROJECT_URL,
-        sourceLabel: "project",
-      },
+      visual: paperImage(
+        "assets/asap_figure1_overview.png",
+        "Figure 1 from the paper: diverse agile whole-body skills on Unitree G1.",
+      ),
+      ...note(
+        "이 발표는 ASAP 논문을 다룹니다. 핵심 문제는 시뮬레이터에서는 이미 꽤 잘 되는 전신 모션 추적 정책이 실제 로봇에 올리면 민첩성과 안정성을 잃는다는 점입니다. 그래서 이 논문은 새 모션을 만드는 대신, 실제 롤아웃을 이용해 시뮬레이터 물리를 더 실제에 가깝게 맞춘 뒤 그 안에서 정책을 다시 학습시키는 데 초점을 둡니다.",
+        "여기서 whole-body skill은 단순 보행이 아니라 점프, 한 발 지지, 킥처럼 상체와 하체가 함께 개입하는 동작을 뜻합니다. 이런 동작은 접지, 착지, 회복이 모두 얽혀 있어서 물리 오차가 빨리 드러납니다.\n\nsim-to-real은 시뮬레이터에서 학습한 정책을 실제 하드웨어로 옮기는 과정입니다. 이 논문은 그 과정에서 남는 마지막 병목을 dynamics mismatch, 즉 시뮬레이터와 실제 하드웨어의 물리 차이로 봅니다.",
+        [
+          qa("이 논문의 한 줄 요약은 무엇인가요?", "실제 롤아웃으로 배운 delta action model을 시뮬레이터에 넣고, 그 정렬된 시뮬레이터 안에서 정책을 다시 fine-tune하는 방법입니다."),
+          qa("왜 locomotion 논문이 아니라 whole-body skill 논문으로 읽어야 하나요?", "이 논문은 단순 주행보다 훨씬 동적인 reference tracking을 다루기 때문에, 접촉과 타이밍 오차가 transfer 병목으로 더 강하게 드러납니다."),
+        ],
+      ),
     },
     {
       section: "setup",
-      chapter: "Problem",
+      chapter: "Task",
       variant: "hero",
-      title: "Target of transfer preservation",
-      subtitle: "The target is not just motion style in simulation, but stable, expressive, closed-loop execution.",
-      visual: {
-        type: "video",
-        src: "https://agile.human2humanoid.com/static/videos/Hero-ASAP-Video-Website-Hero-16-9-202502031028-1080P.mp4",
-        cover: true,
-        caption: "Official ASAP project video.",
-        source: PROJECT_URL,
-        sourceLabel: "project",
-      },
+      title: "Agile Whole-Body Skill Transfer",
+      subtitle: "The target is closed-loop preservation of dynamic motion, not only visually plausible playback in simulation.",
+      visual: projectVideo(ASAP_HERO_VIDEO_URL, "Official ASAP project video.", { cover: true }),
+      ...note(
+        "이 장면에서는 동작의 화려함보다 닫힌 루프에서의 유지 능력을 보시면 됩니다. 즉 점프나 회전 이후에도 자세가 이어지고, 착지 후에 바로 무너지지 않으며, 다음 상태로 자연스럽게 넘어가는지가 핵심입니다. ASAP이 지키고 싶은 것은 바로 이런 closed-loop execution입니다.",
+        "closed-loop control은 현재 상태를 계속 읽으면서 그때그때 action을 갱신하는 제어를 말합니다. 따라서 단순히 한 프레임이 예뻐 보이는 것보다, 접촉 이후에도 제어가 이어지는지가 훨씬 중요합니다.",
+        [qa("이 영상에서 무엇을 가장 중점적으로 봐야 하나요?", "점프나 착지 직후의 회복 구간입니다. transfer가 약하면 바로 그 구간에서 timing과 lower-body coordination이 무너집니다.")],
+      ),
     },
     {
       section: "setup",
-      chapter: "Problem",
-      title: "Where the real transfer failure comes from",
-      subtitle: "Reference generation is already strong; the remaining practical failure mode is hidden hardware physics.",
-      points: [
-        "Human motion reconstruction and imitation learning already produce rich reference behavior.",
-        "The failure point is <strong>transfer under contact, actuation, and hidden compliance mismatch</strong>.",
-        "ASAP treats that mismatch as a training-physics problem, not a reference-motion problem.",
-      ],
+      chapter: "Method",
+      title: "Problem Setting and Claimed Contribution",
+      subtitle: "The paper assumes stage-1 imitation is already reasonably strong and focuses on the remaining transfer failure.",
       visual: {
         type: "cards",
         cols: 3,
         items: [
-          ["Reference", "Human motion gives the controller something expressive to imitate."],
-          ["Policy", "Simulation can already train a strong tracking controller."],
-          ["Transfer", "Real hardware exposes the physics the simulator still misses."],
+          ["Stage 1", "Retarget human videos and pretrain a motion-tracking policy in simulation."],
+          ["Stage 2", "Collect real trajectories, train a delta action model, and align the simulator."],
+          ["Evidence", "Evaluate on IsaacGym→IsaacSim, IsaacGym→Genesis, and IsaacGym→Real."],
         ],
       },
+      points: [
+        `The paper's first contribution is the <strong>two-stage ASAP framework</strong> for simulator alignment with real rollout data.`,
+        `Its second contribution is <strong>real-world deployment of RL-based whole-body skills</strong> on Unitree G1.`,
+        `Its third contribution is a <strong>multi-environment evaluation</strong> that separates replay quality, controller quality, and real-world behavior.`,
+      ],
+      ...note(
+        "이 슬라이드는 논문이 어디까지를 자기 기여로 주장하는지 정리하는 역할입니다. 저자들은 reference generation 자체를 새로 제안하는 것이 아니라, 이미 있는 stage 1 motion tracking stack 위에 simulator alignment 단계를 추가합니다. 그리고 그 결과를 두 개의 simulator 전이와 실제 G1 로봇 전이에서 모두 검증했다는 점을 contribution으로 내세웁니다.",
+        "이 논문을 읽을 때 중요한 것은 claim boundary입니다. 즉 이것은 새로운 humanoid architecture나 새로운 motion source 논문이 아니라, transfer mechanism 논문이라는 점을 먼저 고정해야 합니다.",
+        [
+          qa("이 논문은 새로운 policy architecture를 제안하나요?", "핵심은 architecture보다 transfer pipeline입니다. policy는 PPO 기반 motion-tracking policy이고, 새로 추가되는 것은 delta action model과 aligned simulator입니다."),
+          qa("왜 multi-environment evaluation이 중요한가요?", "단순히 한 simulator나 한 hardware setup만 보면 우연한 튜닝 효과와 method 효과를 분리하기 어렵기 때문입니다."),
+        ],
+      ),
     },
     {
       section: "setup",
-      chapter: "Mechanism",
-      title: "Core mechanism",
-      subtitle: "Measure the physics gap from real rollouts, correct the simulator through action residuals, then fine-tune the policy under that corrected simulator.",
-      visual: {
-        type: "image",
-        src: "assets/asap_pipeline.png",
-        alt: "ASAP pipeline figure",
-        caption: "ASAP pipeline figure.",
-        source: PROJECT_URL,
-        sourceLabel: "project",
-      },
-      points: [
-        "The pipeline is two-stage: <strong>pretrain a strong tracker</strong>, then <strong>align the simulator with real rollouts</strong> before final fine-tuning.",
-        "The deployed artifact remains a single policy.",
-        "The delta model improves training dynamics rather than patching runtime control.",
-      ],
-    },
-
-    {
-      section: "landscape",
-      chapter: "Why Now",
-      title: "Why transfer alignment is now a practical bottleneck",
-      subtitle: "As reference generation and control improve, the remaining deployment loss is increasingly dominated by simulator-hardware mismatch.",
-      visual: {
-        type: "pipeline",
-        steps: [
-          ["Reference motion", "Human video and motion data provide far richer targets than before."],
-          ["Whole-body control", "Simulator policies can now track dynamic behavior with high fidelity."],
-          ["Real deployment", "Transfer still breaks when hidden physics distorts closed-loop execution."],
-        ],
-      },
-      points: [
-        "ASAP matters because it focuses on the last interface in this stack: <strong>policy vs. hardware physics</strong>.",
-      ],
-    },
-    {
-      section: "landscape",
-      chapter: "Why Now",
-      title: "Agile whole-body skills expose mismatch early",
-      subtitle: "These motions compress impact, balance, timing, and actuation errors into a very short horizon.",
+      chapter: "Method",
+      title: "Dynamics Mismatch in Agile Whole-Body Skills",
+      subtitle: "Dynamic reference tracking amplifies contact, actuation, and compliance errors over very short horizons.",
       visual: {
         type: "terms",
         cols: 2,
         items: [
-          ["Impact timing", "Landing a frame late can completely change the next state."],
-          ["Actuator gap", "Torque, delay, and bandwidth limits become visible under fast motion."],
-          ["Hidden compliance", "Feet, ankles, and linkages behave less rigidly than the simulator assumes."],
-          ["Balance margin", "Dynamic motions leave very little slack for recovery."],
+          ["Impact timing", "A small landing-time error changes the next support state immediately."],
+          ["Actuator bandwidth", "Motor lag and saturation are exposed more clearly under fast whole-body motions."],
+          ["Contact modeling", "Feet and landing events are often cleaner in simulation than on hardware."],
+          ["Hidden compliance", "Ankles, linkages, and structural asymmetries create bias not captured by rigid models."],
         ],
       },
+      points: [
+        `Easy motions can hide the transfer gap because the controller has time to recover.`,
+        `Agile motions expose the gap early because <strong>one wrong contact or delayed recovery immediately propagates</strong>.`,
+      ],
+      ...note(
+        "왜 이 논문이 굳이 agile whole-body skill을 전면에 세우는지 여기서 이해하시면 됩니다. 이런 동작은 공중 구간, 착지, 한 발 지지처럼 오차가 바로 다음 상태로 증폭되는 구간을 포함합니다. 그래서 시뮬레이터의 contact, actuation, compliance 모델이 조금만 틀려도 closed-loop behavior가 빠르게 어긋납니다.",
+        "dynamics mismatch는 단순히 mass parameter 하나가 틀린다는 뜻이 아니라, actuator delay, contact impulse, structural asymmetry처럼 controller가 체감하는 유효 물리가 다르다는 뜻입니다. 이 논문은 그 차이를 action interface에서 모델링하려고 합니다.",
+        [qa("왜 어려운 동작일수록 transfer 문제가 더 잘 보이나요?", "동적 동작은 회복 여유가 적어서 simulator bias가 누적되기 전에 바로 실패로 드러나기 때문입니다.")],
+      ),
     },
     {
       section: "landscape",
-      chapter: "Why Now",
-      title: "How to compare prior work on this problem",
-      subtitle: "Related work differs in reference source, control objective, transfer strategy, and real-world evidence.",
+      chapter: "Field",
+      title: "Positioning of ASAP in the Literature",
+      subtitle: "The key distinctions are motion source, control objective, transfer mechanism, and real-world evidence.",
+      layout: "wide",
       visual: {
         type: "table",
-        headers: ["Axis", "Question", "What separates methods"],
+        headers: ["Method", "Reference source", "Primary objective", "Transfer mechanism", "Real-world evidence"],
         rows: [
-          ["Reference source", "Where does the motion come from?", "MoCap, video reconstruction, teleoperation, or learned priors."],
-          ["Control objective", "What is the policy trying to preserve?", "Pose tracking, style, task completion, or end-task success."],
-          ["Transfer strategy", "How is sim-to-real handled?", "Robustness, system ID, residual modeling, or real-data fine-tuning."],
-          ["Real evidence", "What counts as success?", "Simulator fidelity, cross-simulator transfer, or closed-loop hardware execution."],
+          ["DeepMimic", "MoCap", "Physics-based motion imitation", "None", "No"],
+          ["AMP", "Motion dataset", "Stylized control via motion prior", "None", "No"],
+          ["HumanPlus", "Human behavior", "Real-humanoid imitation", "Deployment interface", "Yes"],
+          ["Humanoid Parkour", "Task/perception", "Dynamic task control", "Robust policy training", "Yes"],
+          ["ASAP", "Retargeted human video", "Agile whole-body tracking", "Real-data simulator alignment", "Yes"],
         ],
       },
-      layout: "wide",
+      ...note(
+        "related work는 이 네 축으로 읽는 것이 가장 효율적입니다. 첫째, reference가 어디서 오는지. 둘째, policy가 무엇을 보존하려는지. 셋째, sim-to-real을 어떤 방식으로 다루는지. 넷째, 실제 하드웨어에서 어떤 수준의 evidence를 제시하는지입니다. 이 기준으로 보면 ASAP의 차별점은 motion source가 아니라 real-data simulator alignment에 있습니다.",
+        "motion source는 사람이 보여준 움직임, mocap, 혹은 task reward처럼 policy가 따라가야 할 목표가 어디서 오느냐를 뜻합니다. transfer mechanism은 그 목표를 실제 하드웨어까지 가져갈 때 simulator mismatch를 무엇으로 처리하느냐를 뜻합니다.",
+        [qa("ASAP를 기존 imitation literature 안에서 가장 정확히 어디에 놓아야 하나요?", "reference-tracking humanoid control 위에 올라가는 transfer method로 보는 것이 가장 정확합니다.")],
+      ),
     },
-
     {
       section: "landscape",
       chapter: "Related Work",
-      title: "DeepMimic established the imitation-learning template",
-      subtitle: "It showed that RL can turn reference motion into robust physics-based behavior.",
+      title: "DeepMimic: Reference-Tracking Reinforcement Learning",
+      subtitle: "DeepMimic is the template for turning reference motion into robust physics-based behavior.",
       visual: {
         type: "image",
         src: "assets/deepmimic_teaser.png",
         alt: "DeepMimic teaser image",
-        caption: "DeepMimic: example-guided deep reinforcement learning of physics-based character skills.",
+        caption: "DeepMimic project page.",
         source: DEEPMIMIC_URL,
         sourceLabel: "project",
       },
       points: [
-        "Its key contribution is the <strong>reference-tracking RL template</strong> for dynamic motion imitation.",
-        "It is foundational for ASAP's stage-1 story, but it does not solve real-hardware transfer by itself.",
+        `DeepMimic established the <strong>reference-tracking RL template</strong> that ASAP inherits in stage 1.`,
+        `Its scope is simulator-side physics imitation, not real-hardware simulator alignment.`,
       ],
+      ...note(
+        "DeepMimic를 여기서 짚는 이유는 ASAP의 stage 1이 어떤 전통 위에 서 있는지 보여주기 위해서입니다. reference motion을 두고 RL policy가 그것을 physics simulation 안에서 안정적으로 따라가게 만든다는 기본 틀은 DeepMimic 계열에서 정립되었습니다. 다만 DeepMimic 자체는 real-hardware transfer를 직접 푸는 논문은 아닙니다.",
+        "reference-tracking reinforcement learning은 정답 action을 supervised하게 주는 대신, reference와의 tracking reward를 최대화하도록 policy를 학습하는 방식입니다. 그래서 contact와 balance를 policy가 스스로 배우게 된다는 장점이 있습니다.",
+        [qa("ASAP의 novelty가 DeepMimic과 가장 다르게 갈리는 지점은 어디인가요?", "reference-following stage 1이 아니라, 그 이후 simulator와 hardware 사이의 transfer gap을 real rollout으로 줄이는 stage 2입니다.")],
+      ),
     },
     {
       section: "landscape",
       chapter: "Related Work",
-      title: "AMP made motion priors a first-class control signal",
-      subtitle: "Instead of hand-crafting every style reward, AMP learns a motion prior from data.",
+      title: "AMP: Adversarial Motion Priors",
+      subtitle: "AMP shifts part of behavior specification from manual reward engineering to data-driven motion priors.",
       visual: {
         type: "image",
         src: "assets/amp_teaser.png",
         alt: "AMP teaser image",
-        caption: "AMP: adversarial motion priors for stylized physics-based character control.",
+        caption: "AMP project page.",
         source: AMP_URL,
         sourceLabel: "project",
       },
       points: [
-        "AMP is important because it shifts part of the controller's behavior prior from reward design to data.",
-        "For ASAP, it is conceptually adjacent: both methods use learned structure rather than only manual simulator tuning.",
+        `AMP is important because it makes <strong>learned motion priors</strong> a control signal.`,
+        `It is adjacent to ASAP in spirit, but it still does not address the real-data simulator-alignment step directly.`,
       ],
+      ...note(
+        "AMP는 style이나 motion realism을 reward 항목 하나하나로 다 쓰기보다, motion dataset으로부터 prior를 학습해 policy가 그 prior를 따르도록 만든다는 점이 핵심입니다. 그래서 behavior specification을 더 data-driven하게 가져간다는 의미가 있습니다. 하지만 ASAP과의 직접적인 접점은 simulator alignment가 아니라, stage 1에서 어떤 kind의 motion structure를 줄 것이냐에 가깝습니다.",
+        "motion prior는 어떤 동작이 자연스럽고 어떤 동작이 부자연스러운지를 데이터에서 배운 제약입니다. ASAP은 그런 prior를 새로 설계하는 대신, 이미 구성된 motion-tracking stack의 transfer failure를 줄이는 데 집중합니다.",
+        [qa("AMP와 ASAP을 경쟁 방법으로 봐야 하나요?", "직접 경쟁이라기보다 문제 층위가 다릅니다. AMP는 behavior prior 쪽이고, ASAP은 transfer alignment 쪽입니다.")],
+      ),
     },
     {
       section: "landscape",
       chapter: "Related Work",
-      title: "HumanPlus highlights real humanoid imitation and deployment",
-      subtitle: "It demonstrates that rich human behavior can reach real humanoids, but through a different interface and goal.",
+      title: "HumanPlus: Human-to-Humanoid Motion Transfer",
+      subtitle: "HumanPlus is a better reference point for real-humanoid behavior transfer than for simulator alignment itself.",
       visual: {
         type: "image",
         src: "assets/humanplus_preview.gif",
         alt: "HumanPlus preview",
-        caption: "HumanPlus: humanoid shadowing and imitation from humans.",
+        caption: "HumanPlus project page.",
         source: HUMANPLUS_URL,
         sourceLabel: "project",
       },
       points: [
-        "Its emphasis is imitation from humans to robot behavior in the real world.",
-        "Compared with ASAP, it contributes more to the <strong>behavior source and deployment story</strong> than to simulator alignment itself.",
+        `HumanPlus is relevant because it demonstrates <strong>rich human behavior reaching a real humanoid</strong>.`,
+        `Compared with ASAP, its emphasis is more on behavior source and deployment interface than on residual simulator correction.`,
       ],
+      ...note(
+        "HumanPlus는 사람이 만든 동작이 실제 humanoid까지 이어질 수 있다는 점을 강하게 보여주는 계열입니다. 그래서 behavior source와 real deployment라는 관점에서는 ASAP와 같은 무대에 놓을 수 있습니다. 하지만 핵심 기술적 질문은 다릅니다. HumanPlus는 사람 행동을 로봇 동작으로 연결하는 인터페이스와 imitation story가 중심이고, ASAP은 이미 있는 tracking policy의 transfer failure를 무엇으로 줄일 것이냐가 중심입니다.",
+        "여기서 behavior source는 policy가 어떤 종류의 reference를 받는지를 뜻합니다. ASAP의 novelty는 그 source보다, 실제 롤아웃을 이용해 simulator를 얼마나 더 실제처럼 만들 수 있는지에 있습니다.",
+        [qa("HumanPlus와 ASAP의 가장 직접적인 차이는 무엇인가요?", "HumanPlus는 인간 행동을 실제 humanoid behavior로 연결하는 경로가 중심이고, ASAP은 simulator-hardware mismatch를 보정하는 transfer mechanism이 중심입니다.")],
+      ),
     },
     {
       section: "landscape",
       chapter: "Related Work",
-      title: "Humanoid Parkour pushes dynamic task difficulty from another direction",
-      subtitle: "It shows what modern humanoid control can do when agility, perception, and long-horizon task structure are all stressed.",
+      title: "Humanoid Parkour: High-Difficulty Dynamic Control",
+      subtitle: "Humanoid Parkour is useful here as a marker of how demanding dynamic humanoid control has become.",
       visual: {
         type: "image",
         src: "assets/humanoid_parkour_teaser.png",
         alt: "Humanoid Parkour teaser",
-        caption: "Humanoid Parkour Learning using vision and proprioception.",
+        caption: "Humanoid Parkour project page.",
         source: PARKOUR_URL,
         sourceLabel: "project",
       },
       points: [
-        "Its contribution is not motion transfer from human references, but high-difficulty dynamic execution.",
-        "It is useful here because it marks the upper end of <strong>agility pressure</strong> that exposes transfer problems quickly.",
+        `It is not a human-motion transfer paper, but it is an important reference for <strong>difficulty regime</strong>.`,
+        `ASAP becomes more valuable exactly in the motion regime where contact timing and recovery are this unforgiving.`,
       ],
+      ...note(
+        "Humanoid Parkour를 넣는 이유는 ASAP과 동일 문제를 풀기 때문이 아니라, modern humanoid control이 어느 정도 난이도까지 올라갔는지를 보여주기 위해서입니다. 즉 지금 연구 커뮤니티는 이미 매우 공격적인 동적 동작을 다루고 있고, 그렇기 때문에 simulator mismatch가 더 이상 작은 문제로 남지 않습니다.",
+        "difficulty regime이라는 말은 어떤 수준의 동작 난이도에서 방법의 장단점이 드러나는지를 뜻합니다. ASAP은 쉬운 보행보다 이런 고동적 동작에서 더 의미가 커집니다.",
+        [qa("왜 parkour 논문을 transfer 발표에 포함하나요?", "이 논문이 겨냥하는 agility pressure가 어느 정도인지 보여주는 기준점이기 때문입니다.")],
+      ),
     },
     {
       section: "landscape",
-      chapter: "Related Work",
-      title: "Classical transfer baselines attack the gap differently",
-      subtitle: "ASAP is easiest to value once it is separated from nearby alternatives.",
-      visual: {
-        type: "image",
-        src: "assets/asap_figure3_baselines.png",
-        alt: "Figure 3 from the ASAP paper comparing baseline transfer formulations",
-        caption: "Figure 3 from the paper: vanilla, SysID, delta dynamics, and delta action formulations.",
-        source: PAPER_URL,
-        sourceLabel: "paper",
-      },
+      chapter: "Baselines",
+      title: "Transfer Baselines in the ASAP Paper",
+      subtitle: "The main comparison is with alternative ways to compensate simulator mismatch, not with alternative motion sources.",
+      visual: paperImage(
+        "assets/asap_figure3_baselines.png",
+        "Figure 4 from the paper: Vanilla, SysID, DeltaDynamics, and Delta Action formulations.",
+      ),
       points: [
-        "Vanilla and SysID still leave the policy exposed to the wrong effective control response.",
-        "Delta dynamics corrects state prediction, but ASAP moves the correction to the action interface the policy already uses.",
-        "That makes ASAP a practical change to controller training rather than only to forward prediction.",
+        `<strong>Vanilla.</strong> No simulator correction; train in IsaacGym and test in IsaacSim, Genesis, or the real robot.`,
+        `<strong>SysID.</strong> Search CoM shift, base-mass ratio, and 23-DoF PD gain ratios that replay real trajectories best.`,
+        `<strong>DeltaDynamics versus ASAP.</strong> One corrects next-state prediction; the other corrects the action interface the policy already uses.`,
       ],
+      ...note(
+        "이 슬라이드는 논문 안의 baseline을 정확히 이해하는 데 중요합니다. Vanilla는 아무 보정 없이 policy를 그대로 옮기는 기준선입니다. SysID는 CoM shift와 base mass ratio, 그리고 23개 관절의 PD gain ratio를 real rollout replay 기준으로 탐색합니다. DeltaDynamics는 residual dynamics model로 다음 상태를 보정하려 하고, ASAP은 residual action policy로 effective command 자체를 보정합니다.",
+        "SysID는 simulator parameter를 맞추는 전통적인 접근입니다. DeltaDynamics는 state transition model 쪽 보정이고, delta action은 control interface 쪽 보정입니다. ASAP의 주장은 후자가 policy adaptation과 더 잘 결합된다는 것입니다.",
+        [
+          qa("왜 action-space correction이 더 실용적이라고 보나요?", "최종 policy가 원래도 action을 통해 simulator와 상호작용하기 때문에, bias를 같은 interface에서 보정하는 편이 controller adaptation과 연결되기 쉽기 때문입니다."),
+          qa("DR baseline은 왜 메인 테이블에 없나요?", "논문 본문 메인 비교는 Vanilla, SysID, DeltaDynamics, ASAP에 집중하고, stage 1에는 기본적인 domain randomization만 보조적으로 사용합니다."),
+        ],
+      ),
     },
     {
-      section: "landscape",
-      chapter: "Positioning",
-      title: "What ASAP changes relative to nearby methods",
-      subtitle: "Its contribution is not a new motion source; it changes how simulator physics is corrected before final policy training.",
-      visual: {
-        type: "axis",
-        xLeft: "robust locomotion",
-        xRight: "expressive whole-body",
-        yTop: "real deployment",
-        yBottom: "simulation-centric",
-        points: [
-          ["DeepMimic", 25, 70, "green"],
-          ["AMP", 40, 62, "blue"],
-          ["HumanPlus", 73, 35, "gold"],
-          ["Humanoid Parkour", 82, 52, "purple"],
-          ["ASAP", 78, 24, "red"],
-        ],
-      },
+      section: "pretrain",
+      chapter: "Reference",
+      role: "Overview",
+      title: "ASAP Pipeline",
+      subtitle: "The rest of the deck follows the exact stage order shown in the paper.",
+      visual: paperImage(
+        "assets/asap_figure2_pipeline.png",
+        "Figure 2 from the paper: ASAP overview with pretraining, delta-action training, fine-tuning, and deployment.",
+      ),
       points: [
-        "The paper's value is not a new motion source or a new robot; it is a transfer-specific improvement for agile reference tracking.",
-        "It turns limited real rollouts into a reusable simulator-alignment asset.",
-        "It keeps the final deployment path simple by leaving the robot with a single policy.",
+        `Stage 1 pretrains a motion-tracking policy from retargeted human-video references.`,
+        `Stage 2 collects real rollouts, trains a delta action model, and freezes it inside the simulator.`,
+        `The final deployed artifact is still <strong>one policy</strong>; the delta model is a training-time alignment tool.`,
       ],
+      ...note(
+        "이제부터는 Figure 2를 따라가시면 됩니다. 먼저 human-video 기반 reference를 만들고, 그 reference를 따라가는 tracking policy를 시뮬레이터에서 학습합니다. 그 다음 실제 로봇에서 rollout을 모아서 delta action model을 학습하고, 그 model을 시뮬레이터 안에 고정한 뒤 tracking policy를 다시 fine-tune합니다. 마지막 배포 시점에는 delta model이 아니라 fine-tuned policy 하나만 실제 로봇에 올라갑니다.",
+        "이 논문에서 stage 1은 behavior acquisition 단계이고, stage 2는 physics alignment 단계입니다. 따라서 두 단계를 섞지 않고 순서대로 보는 것이 발표와 이해 모두에 유리합니다.",
+        [qa("왜 deployment 때 delta action model을 함께 쓰지 않나요?", "논문의 의도는 runtime patch보다 training-time simulator correction입니다. delta model은 policy가 더 나은 dynamics 아래서 다시 배우게 만들고, 최종 배포는 single-policy로 단순하게 유지합니다.")],
+      ),
     },
     {
-      section: "landscape",
-      chapter: "Positioning",
-      title: "What counts as success for ASAP",
-      subtitle: "Success means expressive motion still survives on hardware, not only in simulator clips.",
-      visual: {
-        type: "cards",
-        cols: 3,
-        items: [
-          ["Richness", "How expressive is the behavior being attempted?"],
-          ["Robustness", "How stable is the policy under changed dynamics?"],
-          ["Evidence", "Is the gain visible in closed-loop hardware behavior rather than only in simulation?"],
+      section: "pretrain",
+      chapter: "Reference",
+      title: "Human-Video Retargeting to Unitree G1",
+      subtitle: "The reference motion is reconstructed, cleaned, and retargeted before control learning begins.",
+      visual: paperImage(
+        "assets/asap_figure3_retargeting.png",
+        "Figure 3 from the paper: human-video motion reconstruction and retargeting to Unitree G1.",
+      ),
+      points: [
+        `The pipeline goes from <strong>video → TRAM reconstruction → SMPL motion → RL cleanup → G1 retargeting</strong>.`,
+        `The target of retargeting is robot-feasible motion rather than direct replay of human geometry.`,
+        `This matters because stage-2 transfer claims are only meaningful if the stage-1 reference is already physically sensible.`,
+      ],
+      ...note(
+        "Figure 3는 stage 1 reference가 어떻게 만들어지는지 보여줍니다. 사람 비디오에서 시작해 TRAM으로 3차원 human motion을 SMPL 형식으로 복원하고, 그 motion을 simulation 안에서 RL로 한 번 더 정리한 뒤, 최종적으로 G1 morphology에 맞게 retarget합니다. 중요한 점은 사람 관절값을 그대로 복사하는 것이 아니라, 로봇이 실제로 추적 가능한 reference를 만드는 과정이라는 것입니다.",
+        "TRAM은 monocular video 등으로부터 3차원 human motion을 복원하는 모듈이고, SMPL은 사람 몸의 shape와 pose를 파라미터로 표현하는 대표적인 body model입니다. retargeting은 이 human-centered representation을 로봇의 관절 구조와 morphology에 맞는 표현으로 바꾸는 단계입니다.",
+        [
+          qa("왜 RL cleanup 단계가 필요한가요?", "video reconstruction만으로는 noise와 physically implausible segment가 남을 수 있기 때문에, simulator 안에서 한 번 더 추적 가능한 형태로 정리할 필요가 있습니다."),
+          qa("retargeting이 부정확하면 stage 2 해석도 흔들리나요?", "그렇습니다. reference 자체가 비현실적이면 transfer failure가 physics mismatch 때문인지 reference quality 때문인지 분리하기 어렵습니다."),
         ],
-      },
+      ),
     },
     {
-      section: "landscape",
-      chapter: "Positioning",
-      title: "What ASAP actually claims",
-      subtitle: "This is a transfer-specific improvement on top of an already strong imitation stack.",
+      section: "pretrain",
+      chapter: "Policy",
+      title: "Phase-Based Motion Tracking Policy",
+      subtitle: "Stage 1 uses PPO with an asymmetric actor-critic and a phase-conditioned actor.",
+      layout: "wide",
       visual: {
-        type: "compare",
+        type: "table",
+        headers: ["Component", "Paper detail", "Practical role"],
         rows: [
-          ["Already strong", "Reference generation", "The field already knows how to obtain rich motions and train convincing simulator trackers."],
-          ["Still weak", "Transfer under hidden physics", "Agility still collapses when closed-loop hardware dynamics deviate from the simulator."],
-          ["ASAP's job", "Repair the training physics", "The method has to improve transfer without replacing the whole imitation stack."],
+          ["Actor input", "5-step history of q, q̇, root angular velocity, projected gravity, previous action, phase", "Deployment-feasible proprioceptive input without odometry targets"],
+          ["Critic input", "Actor input plus privileged reference global positions and root linear velocity", "Stabilizes training under partial observability"],
+          ["Action", "23-dimensional target joint positions to a PD controller", "The same action interface later corrected by πΔ"],
+          ["Optimizer", "PPO with asymmetric actor-critic", "Stable on-policy optimization for tracking"],
         ],
-      },
-    },
-
-    {
-      section: "pretrain",
-      chapter: "Reference",
-      title: "Pipeline starts from video-to-robot retargeting",
-      subtitle: "Human motion is converted into robot-feasible references before control training begins.",
-      visual: {
-        type: "pipeline",
-        steps: [
-          ["Human video", "Collect expressive human motion examples."],
-          ["Body reconstruction", "Recover a structured motion representation."],
-          ["Cleaning", "Repair and stabilize the motion so it becomes trainable."],
-          ["Retargeting", "Map the motion to Unitree G1 geometry and joints."],
-        ],
-      },
-    },
-    {
-      section: "pretrain",
-      chapter: "Reference",
-      title: "Reference preparation and physical feasibility",
-      subtitle: "It determines whether the policy is asked to imitate something physically meaningful for the robot.",
-      visual: {
-        type: "image",
-        src: "assets/asap_figure2_retargeting.png",
-        alt: "ASAP Figure 2 retargeting pipeline",
-        caption: "Figure 2 from the paper: human-video retargeting to Unitree G1.",
-        source: PAPER_URL,
-        sourceLabel: "paper",
       },
       points: [
-        "The robot should inherit the motion's structure, not its human-specific geometry.",
-        "A transfer paper only becomes convincing if the stage-1 reference is already sensible.",
+        `The actor is <strong>phase-based</strong>: timing information tells the controller where it is in the motion.`,
+        `Because the actor does not depend on position-based motion targets, the policy avoids odometry dependence at deployment.`,
       ],
-    },
-    {
-      section: "pretrain",
-      chapter: "Policy",
-      title: "The tracking policy is phase-aware and feedback-driven",
-      subtitle: "It is a controller conditioned on current state and motion timing, not an open-loop playback system.",
-      visual: {
-        type: "terms",
-        cols: 2,
-        items: [
-          ["Observations", "Base state, joint state, and timing context describe the robot's current situation."],
-          ["Phase", "The controller needs timing to distinguish similar poses with different future intent."],
-          ["Action", "The output is still robot control, not a motion clip index."],
-          ["Critic privilege", "Training may use richer simulator information than deployment while keeping the actor feasible."],
+      ...note(
+        "이 슬라이드는 stage 1 policy의 실제 설계를 담고 있습니다. actor는 5-step proprioceptive history와 phase variable을 보고 23차원 target joint position을 출력하고, 이 값은 PD controller로 내려갑니다. critic은 여기에 reference global position과 root linear velocity 같은 privileged information을 더 봅니다. 그리고 이 전체 policy는 PPO로 학습됩니다. 즉 paper의 핵심 policy는 phase-based motion tracking policy이고, delta action도 결국 이 action interface 위에서 작동합니다.",
+        "POMDP는 정책이 환경의 완전한 상태를 모두 관측할 수 없는 설정입니다. real humanoid control에서는 외부 절대 위치나 완전한 reference state를 actor가 항상 알 수 없기 때문에 POMDP로 보는 것이 자연스럽습니다.\n\nasymmetric actor-critic은 actor와 critic이 서로 다른 관측을 쓰는 구조입니다. actor는 실제 배포 가능한 입력만 쓰고, critic은 시뮬레이터에서만 볼 수 있는 privileged information을 추가로 써서 학습을 안정화합니다.\n\nPPO는 clipped objective를 쓰는 on-policy policy gradient 계열 알고리즘이고, PD controller는 high-level target joint position을 low-level motor command로 바꾸는 고전적인 feedback controller입니다.",
+        [
+          qa("왜 phase variable이 꼭 필요한가요?", "비슷한 pose라도 motion의 앞부분인지 뒷부분인지에 따라 다음 action이 달라지기 때문입니다. phase는 그 timing context를 제공합니다."),
+          qa("왜 actor에서 odometry dependence를 피하려 하나요?", "실제 humanoid에서는 안정적인 global target tracking이 어렵기 때문입니다. 저자들은 phase-driven actor로 배포 복잡도를 낮추려 합니다."),
         ],
-      },
+      ),
     },
     {
       section: "pretrain",
       chapter: "Policy",
-      title: "The reward balances fidelity and stability",
-      subtitle: "The policy must preserve recognizable motion while staying controllable under the simulator's physics.",
+      title: "Reward Terms for Pretraining",
+      subtitle: "The pretraining reward trades off pose fidelity, contact quality, and control regularity.",
+      layout: "wide",
       visual: {
-        type: "cards",
-        cols: 2,
-        items: [
-          ["Pose / joint tracking", "Keep the body configuration close to the reference."],
-          ["Root / velocity tracking", "Preserve global motion, not only local posture."],
-          ["Contact behavior", "Encourage the intended support and landing pattern."],
-          ["Regularization", "Prevent the controller from exploiting unstable or unrealistic behavior."],
+        type: "table",
+        headers: ["Group", "Terms", "Weights"],
+        rows: [
+          ["Penalty", "DoF position / velocity / torque / termination", "-10.0 / -5.0 / -5.0 / -200.0"],
+          ["Regularization", "Torques / action rate / feet orientation / feet heading / slippage", "-1e-6 / -0.5 / -2.0 / -0.1 / -1.0"],
+          ["Task reward", "Body position / VR 3-point / body position (feet)", "1.0 / 1.6 / 2.1"],
+          ["Task reward", "Body rotation / angular velocity / body velocity / DoF position / DoF velocity", "0.5 / 0.5 / 0.5 / 0.75 / 0.5"],
         ],
-      },
-    },
-    {
-      section: "pretrain",
-      chapter: "Policy",
-      title: "Stage 1 gives a usable simulator tracker",
-      subtitle: "ASAP starts from a policy that already tracks dynamic motion well in simulation.",
-      visual: {
-        type: "image",
-        src: "assets/motion_tracking.gif",
-        alt: "Simulation motion tracking result",
-        caption: "Stage 1 produces a competent simulator policy before any real-world alignment begins.",
-        source: PROJECT_URL,
-        sourceLabel: "project",
       },
       points: [
-        "This matters because stage 2 is not about discovering the skill from scratch.",
-        "The stage-1 policy is already strong enough to expose informative failures on hardware.",
-        "That makes the second stage a transfer repair step rather than a behavior-generation step.",
+        `The largest task-side weights are on <strong>VR 3-point</strong> and <strong>feet body position</strong>, showing that whole-body anchoring and foot placement matter strongly.`,
+        `A large termination penalty of <strong>-200</strong> prevents the policy from exploiting unstable motions that look good briefly and fail immediately.`,
       ],
+      ...note(
+        "Table I를 보면 stage 1이 무엇을 중요하게 보는지 바로 드러납니다. penalty 쪽에서는 termination이 -200으로 매우 크고, joint limit과 torque limit도 강하게 들어가 있어서 무리한 동작을 억제합니다. task reward 쪽에서는 VR 3-point가 1.6, feet body position이 2.1로 비교적 크게 들어가 있어, 단순 joint angle matching보다 전신 anchor와 발 위치를 더 강하게 보려는 설계임을 알 수 있습니다. 즉 이 policy는 보기 좋은 포즈뿐 아니라 실제로 버티는 tracking을 목표로 합니다.",
+        "reward shaping은 원하는 behavior를 여러 보상 항목의 가중합으로 표현하는 방식입니다. 이 논문은 motion fidelity와 stability를 따로 두지 않고, 하나의 tracking objective 안에 함께 묶어 학습합니다.\n\n논문은 `VR 3-point`라는 표기를 그대로 사용하지만, 본문에서 이 항목의 구현 세부를 길게 풀어 설명하지는 않습니다. 발표에서는 세 개의 핵심 body anchor를 포함하는 tracking term 정도로 소개하는 것이 가장 안전합니다.",
+        [
+          qa("왜 termination penalty가 이렇게 큰가요?", "jump나 balance 같은 동작은 잠깐만 버텨도 reward를 얻을 수 있기 때문에, 조기 붕괴를 강하게 벌하지 않으면 policy가 불안정한 shortcut을 학습할 수 있습니다."),
+          qa("feet-related reward가 큰 이유는 무엇인가요?", "whole-body skill에서는 발 위치와 접지 타이밍이 다음 상태를 지배하기 때문에, feet tracking을 약하게 두면 전신 motion quality가 빠르게 무너집니다."),
+        ],
+      ),
+    },
+    {
+      section: "pretrain",
+      chapter: "Policy",
+      title: "Pretraining Stabilization Choices",
+      subtitle: "The authors single out three training choices as necessary for difficult agile motions.",
+      visual: {
+        type: "sequence",
+        items: [
+          ["Asymmetric actor-critic", "Use privileged information only in the critic during training."],
+          ["Termination curriculum", "Tighten the tracking-failure threshold from 1.5 m to 0.3 m over training."],
+          ["Reference State Initialization", "Randomize the starting phase so landing and recovery can be learned in parallel."],
+          ["Basic domain randomization", "Add robustness in stage 1 before any real-data alignment begins."],
+        ],
+      },
+      points: [
+        `Without curriculum and RSI, difficult motions fail too early and the policy never learns the later phases correctly.`,
+      ],
+      ...note(
+        "이 슬라이드는 저자들이 stable pretraining의 핵심이라고 직접 강조한 선택들입니다. termination threshold를 처음에는 1.5미터로 느슨하게 두고 나중에 0.3미터까지 조이는 curriculum을 사용하고, RSI로 motion phase를 랜덤 초기화해서 landing과 recovery를 초반부터 병렬로 학습하게 만듭니다. 이 두 가지가 없으면 jump나 single-leg balance 같은 동작은 초반 실패만 반복하고 후반 phase를 거의 보지 못하게 됩니다.",
+        "Reference State Initialization, 즉 RSI는 episode를 항상 motion의 시작점에서만 열지 않고, reference의 임의 phase에서 시작하도록 하는 기법입니다. 이렇게 하면 어려운 모션의 뒷부분, 특히 착지와 회복 구간을 초반부터 충분히 학습할 수 있습니다.\n\ntermination curriculum은 실패 판정을 점점 엄격하게 만드는 방식입니다. 먼저 대강 균형을 잡게 만들고, 그 다음 더 정확한 tracking을 요구하는 순서로 난이도를 올립니다.",
+        [
+          qa("왜 sequence learning처럼 처음부터 끝까지 순서대로 학습시키지 않나요?", "점프처럼 뒷부분이 특히 어려운 모션은 landing을 못 배우면 전체 sequence를 영원히 끝까지 못 보기 때문입니다."),
+          qa("stage 1에서도 domain randomization을 쓰는데, 그럼 ASAP와 무엇이 다른가요?", "기본 randomization은 robustness 보조 수단이고, ASAP의 핵심은 실제 롤아웃으로 학습한 구조적 residual correction이라는 점이 다릅니다."),
+        ],
+      ),
     },
     {
       section: "pretrain",
       chapter: "Gap",
-      title: "Why stage 1 is still insufficient on hardware",
-      subtitle: "A good simulator policy only proves competence under the simulator's own transition function.",
+      title: "Stage-1 Capability and Remaining Gap",
+      subtitle: "The pretrained policy can already track in simulation and even run on hardware, but motion quality remains limited by physics mismatch.",
+      visual: projectImage(
+        "assets/motion_tracking.gif",
+        "Stage-1 simulator tracking from the ASAP project page.",
+      ),
+      points: [
+        `Stage 1 is strong enough to produce <strong>informative real rollouts</strong> instead of random failures.`,
+        `The paper explicitly states that the pretrained policy can track in the real world, but <strong>does not achieve high motion quality</strong>.`,
+        `ASAP therefore treats stage 2 as a transfer-repair step, not a skill-discovery step.`,
+      ],
+      ...note(
+        "중요한 점은 stage 1이 약해서 실패하는 논문이 아니라는 것입니다. 저자들은 pretrained policy가 실제에서도 tracking은 되지만 motion quality가 충분히 좋지 않다고 말합니다. 즉 rollout을 모을 정도의 competence는 이미 확보되어 있고, 남은 문제는 simulator에서 배운 transition bias가 실제에서 자세와 타이밍을 어떻게 망가뜨리느냐입니다. 이 때문에 stage 2는 새 스킬 학습이 아니라 transfer repair 단계로 읽어야 합니다.",
+        "motion quality라는 표현은 단순 성공/실패보다 더 넓은 개념입니다. tracking error, lower-body jerk, landing smoothness, recovery stability까지 포함하는 표현으로 이해하면 됩니다.",
+        [qa("왜 stage 1 policy를 바로 더 오래 학습시키지 않나요?", "문제의 원인이 data 부족이 아니라 잘못된 simulator transition이라면, 같은 simulator에서 더 오래 학습해도 transfer error는 남을 가능성이 큽니다.")],
+      ),
+    },
+    {
+      section: "alignment",
+      chapter: "Data",
+      title: "Real-World Rollout Data and State Recording",
+      subtitle: "Stage 2 starts from measured state-action-next-state tuples collected with the pretrained policy on the robot.",
+      layout: "wide",
       visual: {
-        type: "compare",
+        type: "table",
+        headers: ["Recorded signal", "Dimension", "Acquisition"],
         rows: [
-          ["What stage 1 learns", "Reference-following control", "It learns how to stabilize the motion under the simulator's rules."],
-          ["What stage 1 misses", "Robot-specific transition bias", "It does not observe the real actuator, contact, and linkage effects that distort those rules."],
-          ["Why stage 2 exists", "Physics alignment", "Real rollouts are needed to expose the part of the control problem the simulator still hides."],
+          ["p_base, v_base", "3 + 3", "Motion capture and state estimation"],
+          ["α_base, ω_base", "4 + 3", "Orientation tracking and IMU"],
+          ["q_t, q̇_t", "23 + 23", "Onboard joint sensing"],
+          ["a_t", "23", "Policy output recorded on hardware"],
         ],
-      },
-    },
-
-    {
-      section: "alignment",
-      chapter: "Data",
-      title: "Real rollouts as alignment supervision",
-      subtitle: "ASAP measures the physics gap from the pretrained controller's behavior on the real robot.",
-      visual: {
-        type: "cards",
-        cols: 3,
-        items: [
-          ["State-action-next-state", "Each rollout gives direct transition evidence from hardware."],
-          ["Safety-limited budget", "Real data is scarce, so each rollout has to be reused effectively."],
-          ["Replay compatibility", "The same transitions can be replayed inside the simulator for paired comparison."],
-        ],
-      },
-    },
-    {
-      section: "alignment",
-      chapter: "Data",
-      title: "Replay as paired transition supervision",
-      subtitle: "The same state-action pair is evaluated in both worlds, and the disagreement becomes the signal.",
-      visual: {
-        type: "image",
-        src: "assets/asap_figure4_replay.png",
-        alt: "Figure 4 from the ASAP paper replaying trajectories under different correction methods",
-        caption: "Figure 4 from the paper: replay shows how correction choice affects rollout mismatch over time.",
-        source: PAPER_URL,
-        sourceLabel: "paper",
       },
       points: [
-        "This is the bridge between limited robot data and unlimited simulator-side optimization.",
-        "The paper replays the same trajectory under vanilla, SysID, delta dynamics, and ASAP-style delta action correction.",
-        "ASAP keeps open-loop mismatch lowest over the rollout horizon, which is why replay is a useful alignment signal.",
+        `The real dataset is written as <strong>Dʳ = {sʳ₀, aʳ₀, ..., sʳ_T, aʳ_T}</strong>.`,
+        `Replay starts from the measured real state, so the simulator is asked to reproduce the same local transition that the hardware experienced.`,
       ],
+      ...note(
+        "stage 2의 출발점은 real rollout dataset입니다. 저자들은 pretrained policy를 실제 G1에 올려서 trajectory를 수집하고, 각 시점의 state와 action을 기록합니다. state에는 base position과 velocity, base orientation quaternion, angular velocity, 그리고 23개 관절의 position과 velocity가 포함됩니다. 이렇게 기록된 Dʳ가 바로 simulator alignment의 supervision 역할을 합니다.",
+        "논문 표기에서 sᵣ_t는 실제 로봇에서 측정한 상태, aᵣ_t는 그 상태에서 실제로 실행된 action을 뜻합니다. base state를 함께 기록하는 이유는 whole-body motion에서는 전역 body motion과 joint motion이 모두 중요하기 때문입니다.",
+        [
+          qa("왜 action만이 아니라 full state를 자세히 기록해야 하나요?", "ASAP의 목적은 simulator가 같은 state-action에서 어떤 next state를 만드는지 맞추는 것이므로, base pose와 joint state를 모두 알아야 transition error를 계산할 수 있습니다."),
+          qa("실제 데이터를 supervised regression처럼 바로 policy 학습에 쓰지 않는 이유는 무엇인가요?", "데이터 양이 제한적이기 때문에, 직접 imitation보다 simulator를 고쳐서 다시 RL을 돌리는 편이 데이터 재사용 측면에서 더 효율적이라는 것이 논문의 선택입니다."),
+        ],
+      ),
     },
     {
       section: "alignment",
-      chapter: "Delta Model",
-      title: "Contribution 1: learn an action-space correction",
-      subtitle: "The residual changes what action the simulator effectively sees.",
+      chapter: "Alignment",
+      title: "Delta Action Model",
+      subtitle: "ASAP learns a residual action policy that makes simulated transitions match recorded real transitions.",
       visual: {
         type: "formula",
         items: [
-          ["Base simulator", "f<sup>sim</sup>(s<sub>t</sub>, a<sub>t</sub>)"],
-          ["Residual action", "a<sub>t</sub><sup>corr</sup> = a<sub>t</sub> + π<sup>Δ</sup>(s<sub>t</sub>, a<sub>t</sub>)"],
-          ["Target", "f<sup>sim</sup>(s<sub>t</sub>, a<sub>t</sub><sup>corr</sup>) ≈ s<sub>t+1</sub><sup>real</sup>"],
+          ["Delta action", "Δa<sub>t</sub> = π<sup>Δ</sup><sub>θ</sub>(s<sub>t</sub>, a<sub>t</sub>)"],
+          ["Aligned dynamics", "s<sub>t+1</sub> = f<sup>sim</sup>(s<sub>t</sub>, a<sub>t</sub><sup>r</sup> + Δa<sub>t</sub>)"],
+          ["Target", "s<sub>t+1</sub> ≈ s<sub>t+1</sub><sup>r</sup>"],
         ],
       },
+      points: [
+        `Each RL step initializes the simulator at the measured real state <strong>sʳ_t</strong>.`,
+        `The reward minimizes next-state discrepancy to <strong>sʳ_{t+1}</strong> while regularizing action magnitude.`,
+        `The delta policy itself is trained with <strong>PPO</strong>, not by one-step supervised fitting alone.`,
+      ],
+      ...note(
+        "이 슬라이드가 ASAP의 핵심 수식입니다. simulator를 real state에서 시작시키고, 실제로 기록된 action aʳ_t에 state-dependent corrective action Δa_t를 더합니다. 그리고 그렇게 만든 simulator next state가 실제 next state sʳ_{t+1}에 가까워지도록 πΔ를 학습합니다. 즉 residual dynamics를 next state 쪽에서 직접 보정하는 것이 아니라, simulator가 받는 effective action을 보정하는 방식입니다.",
+        "delta action model은 현재 state와 nominal action을 받아 corrective action을 출력하는 residual policy입니다. delta dynamics model은 보통 next state residual을 직접 예측하는 쪽을 말합니다. ASAP은 후자보다 전자를 택해 control interface와의 연결을 유지합니다.\n\n여기서 다시 PPO를 쓰는 이유는 rollout horizon을 가진 RL objective로 residual policy를 학습해 장기적인 replay mismatch까지 줄이려는 의도 때문입니다.",
+        [
+          qa("왜 residual을 supervised next-state regression으로 바로 학습하지 않나요?", "저자들은 horizon이 있는 dynamics compensation과 action regularization을 함께 다루기 위해 RL formulation을 선택합니다."),
+          qa("왜 aʳ_t를 기반으로 correction을 더하나요?", "정렬하고 싶은 대상이 실제 로봇에서 이미 실행된 transition이기 때문입니다. 따라서 recorded action에 correction을 더한 simulator transition이 real next state를 재현해야 합니다."),
+        ],
+      ),
     },
     {
       section: "alignment",
-      chapter: "Delta Model",
-      title: "Why action-space correction is practical",
-      subtitle: "It captures hidden physics through the same control interface the policy already uses.",
-      visual: {
-        type: "compare",
-        rows: [
-          ["Parameter tuning", "Edit simulator constants", "Clean when the gap is explicit, limited when the bias is local and state-dependent."],
-          ["State correction", "Edit predicted next state", "Can fit trajectories while disconnecting the fix from the policy's control signal."],
-          ["Action correction", "Edit effective command", "Absorbs hidden dynamics while preserving the controller-facing interface."],
-        ],
-      },
-    },
-    {
-      section: "alignment",
-      chapter: "Fine-tuning",
-      title: "Contribution 2: train inside the corrected simulator",
-      subtitle: "Once the residual is learned and frozen, RL continues under a more truthful transition model.",
-      visual: {
-        type: "pipeline",
-        steps: [
-          ["Collect rollouts", "Run the pretrained policy on hardware."],
-          ["Fit delta action", "Make replayed simulator transitions look more like real ones."],
-          ["Freeze delta", "Embed the correction into the simulator."],
-          ["Fine-tune policy", "Re-optimize the controller under the aligned dynamics."],
-        ],
-      },
-    },
-    {
-      section: "alignment",
-      chapter: "Fine-tuning",
-      title: "Why RL fine-tuning is still required",
-      subtitle: "The residual corrects one-step dynamics; RL must still rebuild the feedback policy around that change.",
-      visual: {
-        type: "sequence",
-        items: [
-          ["Better local transitions", "The simulator stops failing in obviously wrong ways."],
-          ["New state distribution", "The policy now visits different states during training."],
-          ["Controller adaptation", "RL learns better recovery and timing under those revised dynamics."],
-        ],
-      },
-    },
-    {
-      section: "alignment",
-      chapter: "Fine-tuning",
-      title: "Deployment remains a single-policy system",
-      subtitle: "The final robot still runs a single policy.",
-      visual: {
-        type: "cards",
-        cols: 3,
-        items: [
-          ["No runtime patch", "The delta model is not needed at deployment time."],
-          ["Cleaner operation", "The deployed controller stays architecturally simple."],
-          ["Training leverage", "The residual matters because it improved what the policy learned before deployment."],
-        ],
-      },
-    },
-    {
-      section: "alignment",
-      chapter: "Fine-tuning",
-      title: "What the residual is likely absorbing",
-      subtitle: "The paper is most convincing when the correction is read as structured hardware bias, not as generic noise.",
-      visual: {
-        type: "cards",
-        cols: 3,
-        items: [
-          ["Actuator lag", "The commanded action arrives differently than the simulator expects."],
-          ["Contact bias", "Feet and landings create transition errors that the simulator smooths away."],
-          ["Linkage effects", "Ankles and connected structures introduce behavior the rigid model underestimates."],
-        ],
-      },
-    },
-    {
-      section: "alignment",
-      chapter: "Fine-tuning",
-      title: "Two-stage method summary",
-      subtitle: "ASAP is a two-stage learning loop with real-data simulator alignment in the middle.",
-      visual: {
-        type: "pipeline",
-        steps: [
-          ["Reference preparation", "Build robot-feasible reference motion from human data."],
-          ["Stage 1", "Train a strong simulator tracking policy."],
-          ["Real rollouts", "Collect measured hardware transitions."],
-          ["Residual alignment", "Learn an action-side correction for simulator replay."],
-          ["Stage 2", "Fine-tune the policy in the aligned simulator and deploy it."],
-        ],
-      },
-    },
-    {
-      section: "evidence",
-      chapter: "Design",
-      title: "What evidence would actually validate ASAP",
-      subtitle: "The story has to line up from local dynamics to final robot behavior.",
-      visual: {
-        type: "cards",
-        cols: 3,
-        items: [
-          ["First", "Replay should show that the corrected simulator is actually closer to measured hardware transitions."],
-          ["Then", "Fine-tuning in that simulator should produce a controller that transfers better across dynamics."],
-          ["Finally", "The real robot should preserve more of the intended agile behavior in closed loop."],
-        ],
-      },
-    },
-
-    {
-      section: "evidence",
-      chapter: "Design",
-      title: "Evaluation is designed around three practical questions",
-      subtitle: "Each part of the evidence supports a different layer of the argument.",
+      chapter: "Alignment",
+      title: "Reward Terms for Delta Action Learning",
+      subtitle: "The delta policy is trained to correct transitions, so its reward is lighter on actuation and explicit about action magnitude.",
+      layout: "wide",
       visual: {
         type: "table",
-        headers: ["Level", "Question", "Why it matters"],
+        headers: ["Group", "Terms", "Weights"],
         rows: [
-          ["Replay", "Does the corrected simulator better match measured transitions?", "Checks whether the alignment signal is physically meaningful."],
-          ["Cross-simulator", "Does aligned fine-tuning improve transfer under changed dynamics?", "Separates method quality from hardware-only confounds."],
-          ["Real robot", "Does more agility survive actual deployment?", "Tests the part of the claim that matters operationally."],
-          ["Ablations", "Which ingredients create the gain?", "Ensures the improvement is not just more training or random perturbation."],
+          ["Penalty", "DoF position / velocity / torque / termination", "-10.0 / -5.0 / -0.1 / -200.0"],
+          ["Regularization", "Action rate / action norm", "-0.01 / -0.2"],
+          ["Task reward", "Body position / VR 3-point / feet position", "1.0 / 1.0 / 1.0"],
+          ["Task reward", "Body rotation / angular velocity / body velocity / DoF position / DoF velocity", "0.5 / 0.5 / 0.5 / 0.5 / 0.5"],
         ],
       },
+      points: [
+        `Compared with pretraining, the torque penalty is much smaller (<strong>-0.1</strong> instead of <strong>-5.0</strong>) because πΔ is not the whole controller.`,
+        `An explicit <strong>action-norm penalty</strong> is added so the residual remains corrective rather than dominating the base action.`,
+      ],
+      ...note(
+        "Table II를 보면 delta action learning reward는 pretraining reward와 성격이 다릅니다. 여기서 πΔ는 전체 motion을 생성하는 policy가 아니라, base action을 얼마나 수정할지 결정하는 residual policy이기 때문에 torque penalty가 훨씬 약해지고, 대신 action norm penalty가 명시적으로 들어갑니다. task-side tracking term은 여전히 body position, rotation, velocity, joint position 같은 항목으로 구성되지만, 전체 목적은 motion generation이 아니라 transition correction입니다.",
+        "action norm regularization은 residual이 너무 커져서 base policy를 덮어쓰지 않도록 막는 장치입니다. 즉 correction은 필요하지만, correction이 nominal command를 completely replace하도록 만들지는 않겠다는 제약으로 이해하면 됩니다.",
+        [qa("왜 torque penalty를 이렇게 줄이나요?", "πΔ는 원래 action에 덧붙는 correction이기 때문에, pretraining policy만큼 강한 actuation penalty를 주면 필요한 보정까지 억누를 수 있기 때문입니다.")],
+      ),
+    },
+    {
+      section: "alignment",
+      chapter: "Fine-Tuning",
+      title: "Simulator Alignment and Policy Fine-Tuning",
+      subtitle: "After delta-action training, the residual is frozen inside the simulator and the tracking policy is fine-tuned again with PPO.",
+      visual: {
+        type: "pipeline",
+        steps: [
+          ["Collect real rollouts", "Run the pretrained motion-tracking policy on hardware."],
+          ["Train πΔ", "Learn corrective actions that reduce replay mismatch."],
+          ["Freeze πΔ in the simulator", "Treat the residual as part of the aligned transition function."],
+          ["Fine-tune the policy", "Re-optimize the tracking policy with PPO under the aligned simulator."],
+          ["Deploy one policy", "Run only the fine-tuned tracking policy on the robot."],
+        ],
+      },
+      points: [
+        `The final runtime system is still <strong>a single policy</strong>; the residual model is a training-time alignment mechanism.`,
+        `Fine-tuning remains necessary because improved local transitions change the state distribution and the recovery strategy the policy must learn.`,
+      ],
+      ...note(
+        "delta action model을 학습한 뒤에는 그것을 simulator 안에 고정하고, motion-tracking policy를 다시 PPO로 fine-tune합니다. 이 순서가 중요한 이유는 residual이 one-step transition bias를 줄여도, 그 위에서 policy가 방문하게 되는 state distribution 자체는 다시 달라지기 때문입니다. 따라서 aligned simulator가 만들어졌다고 해서 base policy를 그대로 쓰는 것으로 끝나지 않고, 그 dynamics에 맞는 feedback behavior를 policy가 다시 학습해야 합니다.",
+        "freeze한다는 것은 πΔ를 더 이상 업데이트하지 않고, simulator transition의 일부처럼 취급한다는 뜻입니다. 이렇게 해야 나중 fine-tuning에서 policy가 어떤 물리 아래서 학습되는지가 고정되고, residual과 policy가 서로 불안정하게 co-adapt하는 문제를 줄일 수 있습니다.",
+        [
+          qa("왜 πΔ와 policy를 end-to-end로 같이 학습하지 않나요?", "논문은 먼저 real-data alignment를 고정한 뒤 policy adaptation을 수행하는 두 단계 구조가 해석 가능성과 안정성 면에서 더 낫다고 봅니다."),
+          qa("deployment 때 single-policy라는 점이 왜 중요하죠?", "runtime stack이 복잡해지지 않고, method의 이득이 simulator-side training improvement로 귀결된다는 점을 분명하게 보여주기 때문입니다."),
+        ],
+      ),
+    },
+    {
+      section: "evidence",
+      chapter: "Protocol",
+      role: "Overview",
+      title: "Evaluation Questions and Metrics",
+      subtitle: "The paper organizes evidence around six questions; the main talk needs the first three plus the supporting analyses.",
       layout: "wide",
-    },
-    {
-      section: "evidence",
-      chapter: "Results",
-      title: "Check 1: simulator transitions match hardware better",
-      subtitle: "Before the controller improves, the simulator itself becomes more faithful to hardware rollouts.",
       visual: {
-        type: "metrics",
-        cols: 3,
-        items: [
-          ["Replay error", "↓", "Corrected simulation lands closer to the measured next state."],
-          ["Contact timing", "tighter", "Landing events occur closer to the hardware trace."],
-          ["Bias structure", "captured", "The residual learns repeatable correction patterns rather than adding generic noise."],
+        type: "table",
+        headers: ["Question", "Protocol", "Decision signal"],
+        rows: [
+          ["Q1", "Open-loop replay in IsaacGym using IsaacSim / Genesis trajectories", "Does simulator alignment reduce replay mismatch?"],
+          ["Q2", "Closed-loop policy fine-tuning then deployment in IsaacSim / Genesis", "Does the aligned simulator produce a better controller?"],
+          ["Q3", "Real-world evaluation on Unitree G1", "Does the transfer improvement survive on hardware?"],
+          ["Q4–Q6", "Ablations on data size, horizon, delta usage, noise, and joint structure", "Why does ASAP work and how should it be used?"],
         ],
       },
+      points: [
+        `The main metrics are <strong>Success</strong>, <strong>E_g-mpjpe</strong>, <strong>E_mpjpe</strong>, <strong>E_acc</strong>, and <strong>E_vel</strong>.`,
+        `A trial is marked unsuccessful when the average body-distance error exceeds <strong>0.5 m</strong> during imitation.`,
+      ],
+      ...note(
+        "결과 파트는 이 네 줄만 기억하시면 됩니다. Q1은 aligned simulator가 정말 real transition을 더 잘 재현하느냐, Q2는 그 simulator에서 다시 학습한 policy가 실제로 더 좋은 controller냐, Q3는 그 이득이 real robot에 살아남느냐, 그리고 Q4부터 Q6은 왜 이런 결과가 나왔는지를 푸는 분석입니다. 발표에서는 이 순서대로 읽는 것이 가장 깔끔합니다.",
+        "E_g-mpjpe는 global body position 기준의 tracking error이고, E_mpjpe는 root-relative mean per-joint position error입니다. E_acc는 acceleration error, E_vel은 root velocity error입니다. Success는 tracking 도중 average body-distance error가 0.5미터를 넘지 않았는지로 판정합니다.",
+        [
+          qa("왜 E_g-mpjpe와 E_mpjpe를 둘 다 보나요?", "global drift와 local pose quality를 분리해서 보기 위해서입니다. 두 지표를 함께 봐야 전체 motion quality를 더 정확히 해석할 수 있습니다."),
+          qa("Success threshold 0.5 m는 어떤 의미인가요?", "그 정도 이상 body-distance error가 벌어지면 tracking이 사실상 실패했다고 보는 operational criterion입니다."),
+        ],
+      ),
     },
     {
       section: "evidence",
-      chapter: "Results",
-      title: "Check 2: the aligned simulator yields a better controller",
-      subtitle: "A better simulator matters only if RL under that simulator yields a better controller.",
+      chapter: "Simulation",
+      title: "Open-Loop Replay Example",
+      subtitle: "Replay isolates dynamics mismatch by removing policy adaptation and asking whether the simulator can reproduce a recorded trajectory.",
+      visual: paperImage(
+        "assets/asap_figure4_replay.png",
+        "Figure 5 from the paper: replaying IsaacSim trajectories in IsaacGym under different correction methods.",
+      ),
+      points: [
+        `The figure replays the same IsaacSim state-action trajectory in IsaacGym under Vanilla, SysID, DeltaDynamics, and ASAP.`,
+        `The bottom MPJPE curves show that <strong>ASAP accumulates mismatch more slowly over time</strong>.`,
+        `The paper explicitly notes that πΔ is trained across multiple motions, so this is not a one-clip overfit example.`,
+      ],
+      ...note(
+        "open-loop replay는 policy adaptation을 완전히 제거하고 dynamics matching만 보는 실험입니다. 즉 testing environment에서 기록한 trajectory를 training environment에서 같은 초기 state와 action sequence로 재생해 보고, 얼마나 빨리 tracking error가 커지는지를 측정합니다. Figure 5에서 ASAP이 가장 천천히 깨진다는 것은 simulator alignment 자체가 더 잘 됐다는 뜻입니다.",
+        "open-loop이라는 말은 policy가 중간에 feedback으로 correction하지 않는다는 뜻입니다. 그래서 이 실험은 controller quality보다 transition model quality를 더 직접적으로 봅니다.",
+        [qa("왜 open-loop replay가 먼저 필요한가요?", "closed-loop 결과만 보면 policy adaptation 효과와 simulator alignment 효과가 섞이기 때문에, 먼저 transition matching 자체를 분리해서 확인할 필요가 있습니다.")],
+      ),
+    },
+    {
+      section: "evidence",
+      chapter: "Simulation",
+      title: "Open-Loop Replay Results at 1.0 s",
+      subtitle: "The longest replay horizon shows the clearest separation between methods.",
+      layout: "wide",
       visual: {
-        type: "image",
-        src: "assets/asap_figure6_sim2sim.png",
-        alt: "Figure 6 from the ASAP paper showing before-and-after tracking across simulators",
-        caption: "Figure 6 from the paper: aligned fine-tuning improves motion tracking across simulators.",
-        source: PAPER_URL,
-        sourceLabel: "paper",
+        type: "table",
+        headers: ["Method", "IsaacSim E_g / E_m", "IsaacSim E_acc / E_vel", "Genesis E_g / E_m", "Genesis E_acc / E_vel"],
+        rows: [
+          ["OpenLoop", "80.8 / 43.5", "10.6 / 11.1", "82.5 / 44.5", "10.8 / 11.4"],
+          ["SysID", "77.6 / 41.5", "10.2 / 10.7", "76.5 / 41.6", "10.0 / 10.5"],
+          ["DeltaDynamics", "68.1 / 21.5", "9.61 / 9.14", "50.2 / 17.2", "8.19 / 7.62"],
+          ["ASAP", "37.9 / 22.9", "4.38 / 5.26", "36.9 / 22.6", "4.23 / 5.10"],
+        ],
       },
       points: [
-        "This is the step that shows ASAP is more than a replay-fitting trick.",
-        "The paper compares transfer across IsaacGym, IsaacSim, and Genesis rather than only within a single simulator pair.",
-        "After ASAP fine-tuning, motion becomes smoother and lower-body correction is visibly less jerky.",
+        `At <strong>1.0 s replay</strong>, ASAP cuts IsaacSim global error from <strong>80.8</strong> to <strong>37.9</strong>.`,
+        `On Genesis, it cuts global error from <strong>82.5</strong> to <strong>36.9</strong> and root-velocity error from <strong>11.4</strong> to <strong>5.10</strong>.`,
+        `SysID helps modestly, while DeltaDynamics improves some local pose metrics but remains weaker on long-horizon global drift.`,
       ],
+      ...note(
+        "Table III에서 가장 볼 가치가 큰 줄은 1.0초 replay입니다. horizon이 길어질수록 dynamics mismatch가 누적되기 때문에 method 간 차이가 가장 분명해집니다. 여기서 ASAP은 IsaacSim 기준 E_g-mpjpe를 80.8에서 37.9로 줄이고, Genesis 기준으로도 82.5에서 36.9로 줄입니다. E_acc와 E_vel도 각각 4점대와 5점대로 가장 낮습니다. 즉 단순히 pose 한두 프레임이 아니라, rollout 전체의 transition quality가 좋아졌다고 읽을 수 있습니다.",
+        "long-horizon replay가 중요한 이유는 local one-step fit만 잘하는 모델과, 시간이 지나도 drift를 덜 일으키는 모델을 구분해 주기 때문입니다. transfer에서는 후자가 훨씬 중요합니다.",
+        [
+          qa("왜 DeltaDynamics는 E_m이 낮은데도 ASAP보다 약하다고 보나요?", "local joint pose error가 낮아도 global drift와 long-horizon stability가 남아 있으면 closed-loop transfer에는 불리할 수 있기 때문입니다."),
+          qa("SysID가 거의 안 듣는 것처럼 보이는데, 그 해석이 맞나요?", "전혀 안 듣는 것은 아니지만, state-dependent local bias를 전역 simulator parameter 몇 개로만 맞추는 데는 한계가 있다는 해석이 더 정확합니다."),
+        ],
+      ),
     },
     {
       section: "evidence",
-      chapter: "Results",
-      title: "Hard motions as the proper stress test",
-      subtitle: "Easy motions can hide a transfer gap that dynamic motions expose immediately.",
+      chapter: "Simulation",
+      title: "Closed-Loop Motion Imitation Across Simulators",
+      subtitle: "The next question is whether the aligned simulator produces a better controller, not just better replay curves.",
+      visual: paperImage(
+        "assets/asap_figure5_difficulty.png",
+        "Figure 6 from the paper: qualitative comparisons across easy, medium, and hard motions.",
+      ),
+      points: [
+        `Closed-loop evaluation covers IsaacGym→IsaacSim and IsaacGym→Genesis across <strong>easy, medium, and hard</strong> motions.`,
+        `ASAP is the only method that keeps <strong>100% success</strong> across all difficulty levels in both test simulators.`,
+        `The hard split is the most informative because it exposes cumulative contact and recovery errors immediately.`,
+      ],
+      ...note(
+        "이제는 simulator를 잘 맞췄다는 사실만으로는 부족하고, 그 simulator에서 다시 학습한 policy가 실제로 더 나은 controller인지 봐야 합니다. Figure 6은 easy, medium, hard motion 전반에서 qualitative comparison을 보여주고, Table IV는 그 결과를 수치화합니다. 중요한 요점은 ASAP이 두 testing simulator 모두에서 success rate를 일관되게 유지한다는 점입니다.",
+        "closed-loop evaluation은 policy가 매 timestep state feedback을 받아 action을 다시 계산하는 상황입니다. 따라서 replay보다 훨씬 deployment에 가까운 실험입니다.",
+        [qa("왜 hard split을 따로 강조하나요?", "hard motion은 small mismatch를 빠르게 실패로 키우기 때문에, method의 transfer quality를 가장 날카롭게 분리해 주기 때문입니다.")],
+      ),
+    },
+    {
+      section: "evidence",
+      chapter: "Simulation",
+      title: "Hard-Level Results from Table IV",
+      subtitle: "The hard split is the most useful row because it exposes cumulative contact and balance errors.",
+      layout: "wide",
       visual: {
-        type: "image",
-        src: "assets/asap_cr7_frame.png",
-        alt: "Representative ASAP target motion frame",
-        caption: "Representative target motion from the ASAP project.",
-        source: PROJECT_URL,
-        sourceLabel: "project",
+        type: "table",
+        headers: ["Method", "IsaacSim Succ / E_g / E_m", "Genesis Succ / E_g / E_m"],
+        rows: [
+          ["Vanilla", "100 / 148 / 51.6", "82.9 / 175 / 80.7"],
+          ["SysID", "100 / 165 / 58.4", "100 / 186 / 93.0"],
+          ["DeltaDynamics", "66.7 / 137 / 60.2", "60.0 / 190 / 89.6"],
+          ["ASAP", "100 / 129 / 56.5", "100 / 129 / 77.0"],
+        ],
       },
       points: [
-        "Slow, forgiving skills can hide transfer weakness because the controller has time to compensate.",
-        "Dynamic balance and explosive motions expose whether the simulator taught the right contact and timing behavior.",
-        "That is why ASAP is best judged on expressive, failure-sensitive motions rather than easy averages.",
+        `In hard Genesis motions, ASAP improves <strong>E_g-mpjpe 175 → 129</strong> and restores success from <strong>82.9% → 100%</strong>.`,
+        `DeltaDynamics sometimes lowers one metric but loses too much success rate to be operationally attractive.`,
       ],
+      ...note(
+        "Table IV에서 hard split만 따로 빼서 보면 논문의 메시지가 더 선명해집니다. Genesis hard motions 기준으로 Vanilla는 success 82.9%, E_g-mpjpe 175, E_mpjpe 80.7인데, ASAP은 success 100%, E_g-mpjpe 129, E_mpjpe 77.0입니다. 반면 DeltaDynamics는 일부 오차 지표만 보면 괜찮아 보여도 success가 60%까지 떨어지기 때문에 실제 배포 관점에서는 받아들이기 어렵습니다.",
+        "E_g와 E_m을 함께 보는 이유는 global drift와 local pose quality를 분리하기 위해서입니다. hard transfer에서는 이 둘 중 하나만 좋아서는 충분하지 않고, success rate까지 같이 봐야 합니다.",
+        [qa("왜 SysID는 hard Genesis에서 오히려 Vanilla보다 나빠지나요?", "전역 parameter tuning이 local, state-dependent bias를 충분히 담지 못하면 특정 difficulty regime에서 오히려 cumulative error를 키울 수 있기 때문입니다.")],
+      ),
     },
     {
       section: "evidence",
-      chapter: "Results",
-      title: "Why data efficiency matters",
-      subtitle: "The method is valuable partly because it turns limited hardware rollouts into a reusable simulator-side signal.",
-      visual: {
-        type: "image",
-        src: "assets/asap_figure9_ablation_size_horizon.png",
-        alt: "Figure 9 from the ASAP paper analyzing dataset size, horizon, and action norm",
-        caption: "Figure 9 from the paper: dataset size, horizon, and action norm affect residual quality.",
-        source: PAPER_URL,
-        sourceLabel: "paper",
-      },
+      chapter: "Simulation",
+      title: "Qualitative Fine-Tuning Results",
+      subtitle: "The visual evidence is consistent with the table: lower-body jitter and temporal drift are reduced after ASAP fine-tuning.",
+      visual: paperImage(
+        "assets/asap_figure6_sim2sim.png",
+        "Figure 7 from the paper: before/after fine-tuning in IsaacSim and Genesis.",
+      ),
       points: [
-        "More real data helps early, but the return flattens once the key mismatch modes are already covered.",
-        "Training horizon matters because the residual must remain useful beyond one-step correction.",
-        "Action norm is a practical tuning knob: too little underfits and too much destabilizes policy adaptation.",
+        `The paper visualizes LeBron James' <strong>Silencer</strong> and <strong>single-foot balance</strong> before and after fine-tuning.`,
+        `The improvement is most visible after the dynamic event, where timing and lower-body recovery no longer drift as quickly.`,
       ],
+      ...note(
+        "Figure 7은 Table IV 숫자를 시각적으로 확인시켜 주는 장면입니다. ASAP fine-tuning 전에는 동적 이벤트 직후 lower-body가 더 jerky하고 tracking이 빠르게 흩어지는데, fine-tuning 후에는 자세와 timing이 더 오래 유지됩니다. 즉 aligned simulator에서 다시 학습한 policy가 단순히 metric만 조금 나아진 것이 아니라, 실제 closed-loop behavior의 질도 좋아졌다고 볼 수 있습니다.",
+        "qualitative figure는 quantitative table을 보조하는 역할을 합니다. 특히 whole-body skill에서는 숫자만으로는 lower-body jerk나 recovery smoothness를 충분히 전달하기 어렵기 때문에 이런 그림이 중요합니다.",
+        [qa("이 qualitative figure가 꼭 필요한 이유는 무엇인가요?", "whole-body motion에서는 동일한 MPJPE 수준에서도 jerk, timing drift, recovery smoothness가 다를 수 있기 때문에, 숫자와 시각 자료를 같이 보는 편이 더 설득력 있습니다.")],
+      ),
     },
     {
       section: "evidence",
-      chapter: "Results",
-      title: "Check 3: more agility survives on hardware",
-      subtitle: "The aligned simulator produces a controller that preserves more of the intended motion after transfer.",
-      visual: {
-        type: "image",
-        src: "assets/asap_figure7_real_before_after.png",
-        alt: "Figure 7 from the ASAP paper showing real-robot behavior before and after fine-tuning",
-        caption: "Figure 7 from the paper: real-robot behavior before and after ASAP fine-tuning.",
-        source: PAPER_URL,
-        sourceLabel: "paper",
-      },
-      points: [
-        "The paper compares the same motion before and after fine-tuning for both in-distribution and out-of-distribution settings.",
-        "After ASAP, posture and timing degrade less severely, especially in the lower body during recovery.",
-        "The gain appears on hardware without introducing a more complex runtime control stack.",
-      ],
-    },
-    {
-      section: "evidence",
-      chapter: "Results",
-      variant: "hero",
-      title: "Recovered agility in real execution",
-      subtitle: "A transfer method earns its value when the robot keeps the dynamic behavior after contact, landing, and recovery.",
-      visual: {
-        type: "video",
-        src: "https://agile.human2humanoid.com/static/videos/ASAP-Motion-CR7_level1-1080P.mp4",
-        cover: true,
-        caption: "Official ASAP motion example from the project page.",
-        source: PROJECT_URL,
-        sourceLabel: "project",
-      },
-    },
-    {
-      section: "evidence",
-      chapter: "Results",
-      title: "Real hardware is the final test",
-      subtitle: "The final question is whether the robot still owns the motion after contact and recovery.",
-      visual: {
-        type: "image",
-        src: "assets/asap_figure8_real_jump.png",
-        alt: "ASAP Figure 8 real-world forward jump",
-        caption: "Figure 8 from the paper: real-world forward-jump deployment on Unitree G1.",
-        source: PAPER_URL,
-        sourceLabel: "paper",
-      },
-      points: [
-        "This is where simulator alignment becomes meaningful rather than just elegant.",
-      ],
-    },
-    {
-      section: "evidence",
-      chapter: "Ablations",
-      title: "Additional real data helps until coverage saturates",
-      subtitle: "The residual benefits from broader rollout coverage, but not all additional data is equally informative.",
-      visual: {
-        type: "image",
-        src: "assets/asap_figure9_ablation_size_horizon.png",
-        alt: "Figure 9 from the ASAP paper analyzing dataset size, horizon, and action norm",
-        caption: "Figure 9 from the paper: ablations show where extra data and longer horizon still help.",
-        source: PAPER_URL,
-        sourceLabel: "paper",
-      },
-      points: [
-        "The useful question is not whether more data helps at all, but when the important mismatch modes are already covered.",
-        "The paper shows diminishing returns once rollout coverage becomes repetitive.",
-        "This is why targeted hardware collection can matter more than brute-force scale.",
-      ],
-    },
-    {
-      section: "evidence",
-      chapter: "Ablations",
-      title: "How delta usage affects the gain",
-      subtitle: "The gain does not come from generic perturbation; it comes from changing training dynamics and letting RL adapt.",
-      visual: {
-        type: "image",
-        src: "assets/asap_figure10_delta_finetune.png",
-        alt: "Figure 10 from the ASAP paper comparing delta-action fine-tuning methods",
-        caption: "Figure 10 from the paper: RL fine-tuning with delta action outperforms fixed-point and search-based alternatives.",
-        source: PAPER_URL,
-        sourceLabel: "paper",
-      },
-      points: [
-        "The paper compares RL fine-tuning against fixed-point iteration and gradient search using the same delta-action model.",
-        "RL fine-tuning achieves the lowest MPJPE over time.",
-        "This supports the practical claim that one-step correction is not enough without policy adaptation.",
-      ],
-    },
-    {
-      section: "evidence",
-      chapter: "Ablations",
-      title: "The residual reflects structured bias",
-      subtitle: "That is part of why the result is plausible as physics alignment rather than just extra exploration.",
-      visual: {
-        type: "image",
-        src: "assets/asap_figure12_delta_structure.png",
-        alt: "Figure 12 from the ASAP paper visualizing per-joint delta-action magnitude",
-        caption: "Figure 12 from the paper: delta-action magnitude concentrates on specific joints rather than spreading uniformly.",
-        source: PAPER_URL,
-        sourceLabel: "paper",
-      },
-      points: [
-        "Average delta magnitude is concentrated on a subset of joints rather than spread evenly across the body.",
-        "That pattern is consistent with contact-chain and lower-body mismatch rather than arbitrary noise injection.",
-        "This makes the learned correction more interpretable as structured hardware bias.",
-      ],
-    },
-
-    {
-      section: "takeaways",
-      chapter: "Summary",
-      title: "Practical takeaway: what ASAP adds",
-      subtitle: "A real-data action residual improves the simulator before the final policy is trained for deployment.",
+      chapter: "Real World",
+      title: "Real-World Evaluation Protocol",
+      subtitle: "The real-world study is intentionally practical: safe enough to execute, but still dynamic enough to show the transfer gap.",
       visual: {
         type: "cards",
         cols: 3,
         items: [
-          ["Before", "A strong simulator controller still fails on hardware-specific transition bias."],
-          ["During", "Real rollouts teach a residual that makes simulated transitions more realistic."],
-          ["After", "The fine-tuned policy preserves more agility while staying simple to deploy."],
+          ["Task set", "Kick, jump forward, step forward and back, single-foot balance, and single-foot jump."],
+          ["Data constraint", "Training the full 23-DoF delta action model would require more than 400 motion clips."],
+          ["Deployment bridge", "A locomotion policy with command (v, ω, Π) keeps balance between motion-tracking tasks."],
         ],
       },
+      points: [
+        `Because data collection was expensive and failure-prone, the real-robot study learns only a <strong>4-DoF lower-body delta model</strong>.`,
+        `The paper reports that two Unitree G1 robots broke during collection because highly dynamic motions quickly overheated the hardware.`,
+      ],
+      ...note(
+        "real-world protocol은 이 논문의 실용성을 잘 보여줍니다. 저자들은 안전성과 대표성을 함께 고려해 다섯 개의 motion-tracking task를 골랐고, 각 task 사이의 전환은 locomotion policy가 맡도록 만들었습니다. 그런데 full 23-DoF delta action model을 실제 데이터로 학습하려면 400개가 넘는 clip이 필요했고, dynamic motion 수집 중 모터 과열과 하드웨어 손상이 심해서 두 대의 G1이 고장났다고 직접 보고합니다. 그래서 real-robot 실험에서는 4-DoF lower-body delta로 타협합니다.",
+        "in-distribution motion은 delta model 학습과 가까운 motion family를 뜻하고, out-of-distribution motion은 그 분포 밖의 motion을 뜻합니다. locomotion command의 (v, ω, Π)는 선속도, 각속도, 그리고 보행/정지 명령을 의미합니다.",
+        [
+          qa("왜 real-world에서는 23-DoF가 아니라 4-DoF delta만 쓰나요?", "데이터 수집 비용과 하드웨어 부담이 너무 커서, lower-body 중심의 더 sample-efficient한 설정으로 평가를 진행했기 때문입니다."),
+          qa("이 설정이 method의 한계인가요, 실험 budget의 한계인가요?", "둘 다 일부 반영되어 있지만, 논문 문맥상 직접적인 이유는 real rollout collection cost와 hardware fragility입니다."),
+        ],
+      ),
+    },
+    {
+      section: "evidence",
+      chapter: "Real World",
+      title: "Real-World Closed-Loop Results",
+      subtitle: "The same intervention improves both an in-distribution motion and an out-of-distribution motion on hardware.",
+      visual: paperImage(
+        "assets/asap_figure7_real_before_after.png",
+        "Figure 8 from the paper: real G1 motion before and after ASAP fine-tuning.",
+      ),
+      points: [
+        `<strong>Kick.</strong> E_g-mpjpe <strong>61.2 → 50.2</strong>, E_mpjpe <strong>43.5 → 40.1</strong>, E_acc <strong>2.96 → 2.46</strong>, E_vel <strong>2.91 → 2.70</strong>.`,
+        `<strong>LeBron \"Silencer\" (OOD).</strong> E_g-mpjpe <strong>159 → 112</strong>, E_mpjpe <strong>55.3 → 47.5</strong>, E_acc <strong>3.43 → 2.84</strong>, E_vel <strong>6.43 → 5.94</strong>.`,
+        `The OOD gain matters because it suggests the residual captures <strong>reusable dynamics bias</strong>, not only one memorized trajectory.`,
+      ],
+      ...note(
+        "Table V와 Figure 8이 real-world 결과의 핵심입니다. kick처럼 in-distribution motion에서도 모든 지표가 개선되지만, 더 중요한 것은 LeBron Silencer처럼 out-of-distribution motion에서도 E_g-mpjpe가 159에서 112로, E_mpjpe가 55.3에서 47.5로 줄어든다는 점입니다. 즉 learned residual이 특정 한 motion의 patch가 아니라, hardware dynamics의 reusable bias를 어느 정도 포착했다고 해석할 수 있습니다.",
+        "out-of-distribution improvement가 중요한 이유는 method의 일반화 가능성을 보여주기 때문입니다. 만약 특정 motion에서만 좋아진다면 simulator alignment라기보다 narrow overfitting에 가까운 해석이 될 수 있습니다.",
+        [
+          qa("4-DoF lower-body delta만으로도 OOD gain이 나는 이유는 무엇일까요?", "저자들의 해석대로라면 sim-to-real gap의 큰 부분이 lower-body contact chain에 집중되어 있기 때문입니다."),
+          qa("real-world metric 개선 폭이 simulator-to-simulator보다 작아 보이는데 괜찮나요?", "하드웨어는 noise, sensing, safety constraint가 더 크기 때문에 absolute improvement를 그대로 비교하기보다, OOD에서도 일관되게 좋아졌다는 점을 보는 편이 더 적절합니다."),
+        ],
+      ),
+    },
+    {
+      section: "evidence",
+      chapter: "Real World",
+      title: "Forward-Jump Demonstration",
+      subtitle: "The paper also demonstrates a forward leap of more than 1 m on the 1.35 m Unitree G1.",
+      variant: "hero",
+      visual: paperImage(
+        "assets/asap_figure8_real_jump.png",
+        "Figure 9 from the paper: real-world forward-jump deployment on Unitree G1.",
+        "Figure 9 from the paper: real-world forward-jump deployment on Unitree G1.",
+        { cover: true },
+      ),
+      points: [
+        `This figure is not a benchmark row; it shows the <strong>motion regime</strong> the paper ultimately cares about.`,
+      ],
+      ...note(
+        "Figure 9는 정량 테이블이라기보다 capability demonstration입니다. 1.35미터 키의 G1이 1미터가 넘는 forward leap를 수행한다는 것은, 이 논문이 겨냥하는 동작 영역이 얼마나 공격적인지를 잘 보여줍니다. 다시 말해 ASAP은 쉬운 locomotion transfer가 아니라, conservative policy로는 쉽게 무너지는 high-impulse skill transfer를 목표로 합니다.",
+        "capability demonstration은 benchmark와 다르게, method가 어떤 수준의 behavior regime까지 도달했는지를 보여주는 자료입니다. 발표에서는 정량 결과와 분리해서 보는 편이 좋습니다.",
+        [qa("이 장면이 실험 결과에서 어떤 의미를 갖나요?", "정량 평가를 보완하는 capability evidence입니다. 논문이 정말 보존하려는 agility regime가 어떤 것인지 직관적으로 보여줍니다.")],
+      ),
+    },
+    {
+      section: "evidence",
+      chapter: "Analysis",
+      title: "Ablation: Dataset Size, Horizon, and Action Norm",
+      subtitle: "The delta model is sensitive to what data it sees and how far it is asked to reason.",
+      visual: paperImage(
+        "assets/asap_figure9_ablation_size_horizon.png",
+        "Figure 10 from the paper: dataset size, training horizon, and action-norm study.",
+      ),
+      points: [
+        `Scaling the dataset from <strong>4300</strong> to <strong>43000</strong> samples reduces closed-loop error by only <strong>0.65%</strong>.`,
+        `Open-loop replay keeps improving up to <strong>1.5 s</strong>, but the best closed-loop result is at <strong>1.0 s</strong>.`,
+        `The best action-norm weight is around <strong>0.1</strong>; larger values over-constrain the residual.`,
+      ],
+      ...note(
+        "Figure 10은 delta action model을 어떻게 학습해야 하는지에 대한 가장 practical한 가이드를 줍니다. 첫째, dataset size를 4300에서 43000으로 늘려도 closed-loop 성능은 0.65%만 좋아집니다. 즉 무조건 데이터 양을 키우는 것보다 informative coverage를 확보하는 것이 더 중요합니다. 둘째, open-loop 기준으로는 1.5초 horizon이 가장 좋지만, closed-loop에서는 1.0초가 sweet spot입니다. 셋째, action norm weight는 0.1 근처가 가장 좋고, 너무 크면 residual이 과하게 제약됩니다.",
+        "action norm은 residual action의 크기를 억제하는 regularization입니다. 너무 약하면 correction이 불안정해지고, 너무 강하면 필요한 bias correction까지 막아버릴 수 있습니다.",
+        [
+          qa("왜 더 많은 데이터가 거의 도움이 안 되나요?", "주요 mismatch mode를 이미 커버한 뒤에는 비슷한 rollout이 반복되기 때문입니다. 이 논문은 quantity보다 coverage가 중요하다는 쪽에 가깝습니다."),
+          qa("왜 open-loop best horizon과 closed-loop best horizon이 다른가요?", "longer horizon은 replay fitting에는 좋을 수 있지만, policy adaptation까지 포함한 closed-loop fine-tuning에서는 optimization difficulty와 distribution shift가 함께 작용하기 때문입니다."),
+        ],
+      ),
+    },
+    {
+      section: "evidence",
+      chapter: "Analysis",
+      title: "Ablation: Using the Delta Action Model",
+      subtitle: "The paper compares three ways to use a learned delta model once it exists.",
+      visual: paperImage(
+        "assets/asap_figure10_delta_finetune.png",
+        "Figure 11 from the paper: RL fine-tuning versus fixed-point iteration and gradient search.",
+      ),
+      points: [
+        `RL fine-tuning achieves the <strong>lowest tracking error over time</strong>.`,
+        `Fixed-point iteration and gradient search are training-free, but the paper argues they are too myopic and suffer from out-of-distribution states.`,
+        `This is strong evidence that <strong>aligned dynamics alone are not enough</strong>; policy adaptation remains necessary.`,
+      ],
+      ...note(
+        "Figure 11은 delta action model이 있으면 그다음 무엇을 해야 하는지를 묻는 실험입니다. fixed-point iteration이나 gradient search처럼 training-free하게 correction만 계산해서 쓰는 방법도 가능하지만, 논문 결과는 RL fine-tuning이 가장 낮은 tracking error를 보여준다고 말합니다. 저자들의 해석은 분명합니다. dynamics alignment는 필요하지만, 그 위에서 policy가 새 상태 분포에 맞게 feedback behavior를 다시 배워야 진짜 transfer gain이 나온다는 것입니다.",
+        "fixed-point iteration은 correction을 반복적으로 적용해 self-consistent action을 찾으려는 방식이고, gradient search는 objective를 기준으로 action을 직접 최적화하는 접근입니다. 둘 다 training-free라는 장점은 있지만, distribution shift에 약하고 closed-loop policy를 재구성하지 못합니다.",
+        [qa("이 결과가 왜 중요한가요?", "ASAP의 핵심이 단순 residual fitting이 아니라 aligned simulator 안에서의 재학습이라는 점을 가장 직접적으로 뒷받침하기 때문입니다.")],
+      ),
+    },
+    {
+      section: "evidence",
+      chapter: "Analysis",
+      title: "Ablation: Random Action Noise versus Delta Action",
+      subtitle: "The authors explicitly test whether the gain is just generic robustness from perturbing actions.",
+      visual: paperImage(
+        "assets/asap_figure11_noise.png",
+        "Figure 12 from the paper: random action noise versus ASAP fine-tuning.",
+      ),
+      points: [
+        `Random action noise with <strong>β ∈ [0.025, 0.2]</strong> does improve over no fine-tuning.`,
+        `The best action-noise policy still reaches about <strong>173 MPJPE</strong>, whereas ASAP reaches <strong>126 MPJPE</strong>.`,
+        `The gap suggests delta action is not just robustness injection; it is <strong>structured correction</strong>.`,
+      ],
+      ...note(
+        "Figure 12는 매우 중요한 반박 실험입니다. 혹시 ASAP의 gain이 residual modeling이 아니라 단순히 noisy action으로 policy를 더 robust하게 만든 효과일 수 있지 않느냐는 질문에 답합니다. 결과는 noise도 어느 정도 도움이 되지만, best noise가 173 MPJPE인 반면 ASAP은 126 MPJPE로 훨씬 낮다는 것입니다. 따라서 delta action은 uniform robustness trick보다 더 구조적인 correction을 담고 있다고 보는 편이 타당합니다.",
+        "random action noise는 domain randomization의 한 형태로, action에 임의 perturbation을 더해 policy robustness를 높이려는 접근입니다. 하지만 구조적 hardware bias가 joint별로 다르면 uniform noise만으로는 충분하지 않을 수 있습니다.",
+        [qa("그렇다면 basic domain randomization은 무의미한가요?", "무의미한 것은 아닙니다. 다만 이 논문이 겨냥하는 state-dependent structured mismatch를 대체하기에는 한계가 있다는 것이 핵심입니다.")],
+      ),
     },
     {
       section: "takeaways",
-      chapter: "Summary",
-      title: "Practical takeaway: when this method is a good fit",
-      subtitle: "It is most compelling when the policy is already good, the motion is dynamic, and the remaining weakness is transfer.",
-      visual: {
-        type: "terms",
-        cols: 2,
-        items: [
-          ["Best case", "A simulator policy is competent but brittle under hardware dynamics."],
-          ["Best case", "The task contains impacts, timing sensitivity, or whole-body balance events."],
-          ["Weaker case", "The simulator is fundamentally wrong everywhere, not just biased in effective control."],
-          ["Weaker case", "Real rollouts are too narrow to expose the mismatch the policy actually faces."],
-        ],
-      },
+      chapter: "Interpretation",
+      title: "Interpretation of the Learned Residuals",
+      subtitle: "The learned correction is concentrated, asymmetric, and physically interpretable rather than uniform across the body.",
+      visual: paperImage(
+        "assets/asap_figure12_delta_structure.png",
+        "Figure 13 from the paper: average absolute delta-action magnitude per joint.",
+      ),
+      points: [
+        `Larger residual magnitude appears in the <strong>lower body</strong>, especially around knee and ankle joints.`,
+        `Left-right asymmetries remain visible, consistent with hardware-specific actuation and contact bias.`,
+        `This pattern supports the claim that πΔ models <strong>structured dynamics mismatch</strong> better than uniform noise.`,
+      ],
+      ...note(
+        "Figure 13은 learned residual을 어떻게 해석해야 하는지 보여줍니다. correction이 몸 전체에 균일하게 뿌려지지 않고 lower body, 특히 knee와 ankle 주변에 더 크게 집중됩니다. 또 좌우 비대칭도 남아 있습니다. 이는 residual이 arbitrary jitter가 아니라, 실제 하드웨어의 contact chain과 actuation bias를 구조적으로 반영하고 있음을 시사합니다.",
+        "여기서 residual magnitude는 데이터셋 전체에서 각 joint에 대해 출력된 delta action의 평균 절대값입니다. 값이 큰 joint일수록 simulator와 hardware의 유효 dynamics gap이 더 크게 드러난다고 볼 수 있습니다.",
+        [qa("왜 lower-body에 residual이 집중되는 것이 자연스럽나요?", "agile motion transfer에서 가장 큰 mismatch가 접지와 착지, balance recovery를 담당하는 lower-body contact chain에 모이기 쉽기 때문입니다.")],
+      ),
     },
     {
       section: "takeaways",
-      chapter: "Limits",
-      title: "Practical takeaway: limits before adopting ASAP",
-      subtitle: "ASAP is useful, but it is not a replacement for broad model quality, rollout coverage, or scaling studies across embodiments.",
+      chapter: "Interpretation",
+      title: "Scope and Limitations",
+      subtitle: "ASAP is a targeted transfer method, not a universal replacement for simulator modeling.",
       visual: {
         type: "compare",
         rows: [
-          ["Coverage limit", "Needs informative rollouts", "The residual cannot fix failure modes it never sees."],
-          ["Representation limit", "Action residual is still a bias model", "Some gaps may be too large or too global for this representation."],
-          ["Research next step", "Scale and refresh", "A natural next test is iterative rollout refresh across broader motion sets and robots."],
+          ["Coverage requirement", "Needs informative real rollouts", "The residual cannot fix failure modes it never observes."],
+          ["Representation limit", "Action residual is a local bias model", "A global simulator defect may be too large for this representation alone."],
+          ["Experimental scope", "Unitree G1 and selected motions", "The real-robot study uses a 4-DoF lower-body residual under a constrained data budget."],
         ],
       },
+      points: [
+        `ASAP is strongest when stage 1 is already competent and the remaining weakness is transfer bias.`,
+        `If the simulator is globally wrong or rollout coverage is too narrow, the residual has limited room to help.`,
+      ],
+      ...note(
+        "이 논문을 과대해석하지 않으려면 한계도 분명히 봐야 합니다. ASAP은 simulator 전체를 다시 배우는 방법이 아니라, action interface에서 드러나는 local, state-dependent bias를 보정하는 방법입니다. 따라서 rollout coverage가 좁으면 못 본 failure mode는 고칠 수 없고, simulator가 전반적으로 너무 틀리면 residual 하나로는 부족할 수 있습니다. 또한 real-robot 검증도 G1과 선택된 motion, 그리고 4-DoF lower-body residual이라는 제한 아래에서 이뤄집니다.",
+        "coverage는 rollout dataset이 어떤 상태와 motion regime를 포함하느냐를 뜻합니다. local bias model이라는 표현은 residual이 simulator를 완전히 대체하는 것이 아니라, nominal simulator 위에 correction layer를 얹는 방식이라는 뜻입니다.",
+        [qa("어떤 경우에 ASAP를 바로 가져다 쓰기 어렵나요?", "stage 1 policy가 아직 너무 약하거나, simulator defect가 전역적이고 구조적으로 커서 local residual로 설명되지 않는 경우입니다.")],
+      ),
+    },
+    {
+      section: "takeaways",
+      chapter: "Interpretation",
+      title: "Takeaways",
+      subtitle: "The paper is most convincing when read as simulator correction for already-competent agile motion tracking.",
+      visual: {
+        type: "cards",
+        cols: 3,
+        items: [
+          ["What changes", "Real rollouts train a delta action model that alters simulator transitions before final policy training."],
+          ["What improves", "Replay quality, cross-simulator tracking, and real-world motion quality all improve in the same direction."],
+          ["Why it matters", "The gains survive on hard dynamic motions while deployment stays single-policy."],
+        ],
+      },
+      points: [
+        `ASAP is less about generating new motion and more about <strong>preserving existing agile motion across the final transfer boundary</strong>.`,
+      ],
+      ...note(
+        "마지막으로 이 논문을 한 문장으로 요약하면, 이미 꽤 잘 만들어진 agile motion-tracking policy가 마지막 transfer boundary에서 잃는 민첩성을 되찾기 위해 simulator를 먼저 고치고 policy를 다시 학습시키는 방법이라고 할 수 있습니다. 그리고 그 주장은 open-loop replay, closed-loop sim-to-sim, real-world result, 그리고 ablation까지 같은 방향의 증거로 뒷받침됩니다. 그래서 ASAP의 contribution은 motion generation이 아니라 simulator alignment에 있습니다.",
+        "발표를 마무리할 때는 new motion source가 아니라 transfer-specific correction이라는 점, 그리고 runtime complexity를 늘리지 않고 real-world quality를 올렸다는 점을 함께 강조하는 것이 좋습니다.",
+        [qa("이 논문의 가장 강한 증거 하나만 고르라면 무엇인가요?", "실제 로봇 OOD motion에서도 개선이 유지된다는 Table V와 Figure 8 조합이 가장 강합니다.")],
+      ),
     },
     {
       section: "takeaways",
       chapter: "Resources",
       title: "Resources",
-      subtitle: "Paper, project, code, and the central question to keep from the talk.",
+      subtitle: "Paper, project page, code, and the central question to keep from the talk.",
       points: [
         `<strong>Paper.</strong> <a href="${PAPER_URL}" target="_blank" rel="noreferrer">${PAPER_URL}</a>`,
         `<strong>Project.</strong> <a href="${PROJECT_URL}" target="_blank" rel="noreferrer">${PROJECT_URL}</a>`,
@@ -820,748 +932,13 @@ window.ASAP_DECK = {
       ],
       visual: {
         type: "quote",
-        text: "The paper's lasting idea is simple: if the robot fails because the simulator teaches the wrong physics, improve the simulator first, then retrain the policy.",
+        text: "If stage-1 imitation is already good, improving simulator physics can be a more efficient path to better deployment than redesigning the controller.",
       },
+      ...note(
+        "마지막으로 링크를 남겨 두었습니다. 발표에서 남겨야 할 질문은 단순합니다. stage 1 imitation이 이미 충분히 좋다면, 다음 성능 향상은 policy architecture를 또 바꾸는 데서 오느냐, 아니면 simulator가 가르치는 physics를 실제에 더 가깝게 만드는 데서 오느냐입니다. ASAP은 그 두 번째 답을 가장 직접적으로 밀어붙이는 논문입니다.",
+        "project page에는 실제 영상이 정리돼 있고, code repository에는 simulator alignment 구현 세부가 들어 있습니다. 발표 뒤에 method를 더 파고들 때는 Figure 2, Table III, Table IV, Table V 순서로 다시 보는 것이 가장 효율적입니다.",
+        [qa("후속으로 가장 먼저 검토할 만한 확장 방향은 무엇인가요?", "더 넓은 motion set과 더 많은 embodiment에서 iterative rollout refresh까지 포함한 scaling study를 보는 것이 다음 단계로 자연스럽습니다.")],
+      ),
     },
   ],
 };
-
-const PRESENTER_NOTES_BY_TITLE = {
-  ASAP: {
-    scriptKo: [
-      "이 발표는 ASAP이라는 논문을 다룹니다. 핵심 문제는 시뮬레이터에서는 잘 되던 민첩한 전신 동작이 실제 로봇에서는 물리 차이 때문에 무너진다는 점입니다.",
-      "논문의 제안은 실제 롤아웃으로 그 차이를 측정하고, 그 차이를 반영한 시뮬레이터에서 정책을 다시 학습시키는 것입니다.",
-    ],
-    qaKo: [["이 논문의 한 줄 요약이 뭔가요?", "실제 롤아웃으로 시뮬레이터를 더 실제답게 만든 뒤 그 안에서 정책을 다시 학습시키는 방법입니다."]],
-  },
-  "What the paper is trying to preserve": {
-    scriptKo: [
-      "여기서 보셔야 할 것은 단순히 동작이 화려하다는 점이 아닙니다. 착지와 회복까지 포함해서 닫힌 루프에서 동작이 유지되는지가 핵심입니다.",
-      "ASAP의 가치는 이런 민첩한 전신 동작이 실제 로봇에서도 살아남도록 만드는 데 있습니다.",
-    ],
-    qaKo: [["왜 초반에 큰 영상 슬라이드를 넣었나요?", "이 논문이 지키고 싶은 대상이 무엇인지 직관적으로 먼저 보여주기 위해서입니다."]],
-  },
-  "The bottleneck is no longer motion generation": {
-    scriptKo: [
-      "이제 병목은 모션을 만드는 것 자체가 아닙니다. 사람 모션 복원과 imitation learning으로 시뮬레이터 안에서는 꽤 풍부한 동작을 만들 수 있습니다.",
-      "진짜 어려운 부분은 그 풍부한 동작이 실제 하드웨어에서 닫힌 루프로 유지되느냐입니다.",
-    ],
-    qaKo: [["왜 motion generation보다 transfer를 강조하나요?", "이 논문이 기여하는 지점이 새로운 모션 생성이 아니라 실제 실행에서의 물리 정렬이기 때문입니다."]],
-  },
-  "Core mechanism": {
-    scriptKo: [
-      "이 슬라이드가 방법의 핵심입니다. 실제 롤아웃으로 시뮬레이터와 현실의 차이를 보고, 액션 residual로 시뮬레이터 입력을 보정합니다.",
-      "그 다음 그 보정된 시뮬레이터 안에서 정책을 다시 fine-tuning 하고, 최종 배포는 정책 하나만 사용합니다.",
-    ],
-    qaKo: [["왜 식 대신 파이프라인 figure를 앞에 놨나요?", "최종 발표에서는 메커니즘의 전체 구조를 먼저 잡아주는 것이 이해에 더 효과적이기 때문입니다."]],
-  },
-  "Why this problem matters now": {
-    scriptKo: [
-      "최근 연구들은 reference motion, whole-body control, perception이 모두 빠르게 강해졌습니다. 그래서 남은 병목이 transfer 쪽으로 더 선명하게 보입니다.",
-      "ASAP은 그 중에서도 마지막 인터페이스, 즉 정책과 실제 하드웨어 물리의 불일치에 집중합니다.",
-    ],
-    qaKo: [["왜 지금 이 문제가 더 중요해졌나요?", "나머지 스택이 강해질수록 마지막 transfer 병목이 상대적으로 더 지배적이기 때문입니다."]],
-  },
-  "Agile whole-body skills expose mismatch early": {
-    scriptKo: [
-      "민첩한 전신 동작은 작은 물리 오차도 바로 드러냅니다. 착지 타이밍, actuation delay, hidden compliance가 짧은 구간 안에 모두 압축되어 있기 때문입니다.",
-      "그래서 이런 동작은 transfer 방법의 품질을 보기 위한 좋은 스트레스 테스트가 됩니다.",
-    ],
-    qaKo: [["왜 특히 agile skill에서 mismatch가 잘 드러나나요?", "오차를 흡수할 시간과 안정 여유가 적어서 작은 차이도 바로 실패로 이어지기 때문입니다."]],
-  },
-  "A useful reading frame for this literature": {
-    scriptKo: [
-      "이 분야를 볼 때는 네 가지 축이 유용합니다. motion source가 무엇인지, policy objective가 무엇인지, transfer를 어떻게 다루는지, 그리고 real evidence가 얼마나 강한지입니다.",
-      "이 프레임으로 보면 ASAP이 어디에 기여하는지 더 명확해집니다.",
-    ],
-    qaKo: [["이 슬라이드가 왜 필요한가요?", "관련 연구를 하나의 동일한 기준으로 읽어야 ASAP의 위치와 가치가 명확해지기 때문입니다."]],
-  },
-  "DeepMimic established the imitation-learning template": {
-    scriptKo: [
-      "DeepMimic은 reference motion을 RL로 물리 기반 제어로 바꾸는 고전적인 틀을 만든 논문입니다.",
-      "ASAP의 1단계 pretraining도 큰 틀에서는 이 계보 위에 있다고 보시면 됩니다.",
-    ],
-    qaKo: [["DeepMimic과 ASAP의 차이는 뭔가요?", "DeepMimic은 주로 imitation template를 세운 반면, ASAP은 그 이후 transfer gap을 줄이는 데 초점이 있습니다."]],
-  },
-  "AMP made motion priors a first-class control signal": {
-    scriptKo: [
-      "AMP는 스타일이나 동작 prior를 손으로 다 설계하기보다 데이터로부터 학습된 motion prior로 제어를 유도했다는 점이 중요합니다.",
-      "ASAP과 직접 같은 문제를 푸는 것은 아니지만, 손설계 대신 학습된 구조를 활용한다는 점에서 맥락이 이어집니다.",
-    ],
-    qaKo: [["AMP가 여기서 왜 중요하죠?", "이 분야가 reward handcrafting에서 learned prior 쪽으로 이동했다는 흐름을 보여주기 때문입니다."]],
-  },
-  "HumanPlus highlights real humanoid imitation and deployment": {
-    scriptKo: [
-      "HumanPlus는 사람 행동을 실제 humanoid로 가져가는 deployment 관점에서 인상적인 사례입니다.",
-      "ASAP과 비교하면 behavior source와 real deployment 맥락은 강하지만, simulator alignment 자체가 핵심은 아닙니다.",
-    ],
-    qaKo: [["HumanPlus와 ASAP은 경쟁 관계인가요?", "직접적인 대체재라기보다 서로 다른 축에서 real humanoid capability를 보여주는 연구에 가깝습니다."]],
-  },
-  "Humanoid Parkour pushes dynamic task difficulty from another direction": {
-    scriptKo: [
-      "Humanoid Parkour는 사람 reference transfer라기보다, 높은 난도의 dynamic task를 humanoid가 얼마나 수행할 수 있는지를 보여주는 연구입니다.",
-      "여기서는 민첩성이 커질수록 transfer 문제가 더 가혹해진다는 점을 보여주는 기준점으로 읽을 수 있습니다.",
-    ],
-    qaKo: [["왜 parkour류 연구를 같이 보나요?", "민첩성의 상한이 올라갈수록 transfer gap이 얼마나 중요한지 더 잘 보이기 때문입니다."]],
-  },
-  "Classical transfer baselines attack the gap differently": {
-    scriptKo: [
-      "전통적인 baseline은 system identification, domain randomization, state residual처럼 각기 다른 방식으로 gap을 줄이려 합니다.",
-      "ASAP의 차별점은 실제 rollout에서 얻은 bias를 action space에서 반영해 training dynamics를 바꾼다는 점입니다.",
-    ],
-    qaKo: [["ASAP이 baseline 대비 가장 다른 점은 뭔가요?", "측정된 실제 bias를 action residual로 학습하고 그걸 simulator 안에 넣어 RL을 다시 돌린다는 점입니다."]],
-  },
-  "ASAP's academic position": {
-    scriptKo: [
-      "이 슬라이드는 ASAP의 학계 포지셔닝을 한 번에 보여줍니다. expressive whole-body 쪽에 있으면서도 real deployment 쪽으로 더 올라가려는 시도입니다.",
-      "즉, 예쁜 simulation만이 아니라 실제 전이된 agility를 보겠다는 입장입니다.",
-    ],
-    qaKo: [["이 포지셔닝 그림은 정량 결과인가요?", "정량이라기보다 문헌 지형을 직관적으로 정리한 발표용 positioning map입니다."]],
-  },
-  "The SOTA question here is precise": {
-    scriptKo: [
-      "여기서의 SOTA 질문은 단순하지 않습니다. 시뮬레이터에서 멋져 보이느냐가 아니라, 그 expressive control이 실제 하드웨어까지 얼마나 살아남느냐입니다.",
-      "그래서 richness, robustness, real evidence를 함께 봐야 합니다.",
-    ],
-    qaKo: [["왜 SOTA를 단일 metric으로 보지 않나요?", "이 문제는 표현력과 전이성, 그리고 실제 증거를 함께 봐야 의미가 있기 때문입니다."]],
-  },
-  "At this point, the paper's burden is clear": {
-    scriptKo: [
-      "여기까지 오면 이 논문의 burden이 분명합니다. 이미 강한 imitation stack을 통째로 바꾸는 것이 아니라, 마지막 transfer 병목을 정말 줄였는지를 보여줘야 합니다.",
-      "즉, contribution은 넓기보다 좁고 정확해야 합니다.",
-    ],
-    qaKo: [["이 논문의 claim을 어디까지 받아들여야 하나요?", "전체 humanoid stack의 혁신이라기보다 transfer-specific improvement로 읽는 것이 가장 정확합니다."]],
-  },
-  "Stage 1 begins with human motion, not robot demonstrations": {
-    scriptKo: [
-      "1단계는 사람 motion에서 출발합니다. 먼저 human video나 reconstruction으로 동작을 얻고, 그걸 robot reference로 바꾸는 과정이 선행됩니다.",
-      "즉 ASAP은 reference sourcing을 대체하는 논문이 아닙니다.",
-    ],
-    qaKo: [["왜 robot demo가 아니라 human motion에서 시작하나요?", "목표가 더 풍부하고 자연스러운 whole-body behavior를 가져오는 데 있기 때문입니다."]],
-  },
-  "Reference preparation is not cosmetic": {
-    scriptKo: [
-      "shape fitting과 retargeting은 단순한 전처리가 아닙니다. robot이 실제로 따라갈 수 있는 reference를 만드는 핵심 단계입니다.",
-      "이 단계가 허술하면 뒤의 transfer 논의도 설득력이 약해집니다.",
-    ],
-    qaKo: [["reference quality가 transfer에도 영향을 주나요?", "네. 따라가야 할 target 자체가 robot-feasible해야 이후 controller와 transfer 분석이 의미를 갖습니다."]],
-  },
-  "The tracking policy is phase-aware and feedback-driven": {
-    scriptKo: [
-      "이 policy는 단순 playback이 아니라 feedback controller입니다. 그리고 같은 자세라도 motion phase가 다르면 의미가 달라지기 때문에 phase 정보가 중요합니다.",
-      "특히 jump나 landing처럼 비대칭적인 동작에서 이 timing 정보가 핵심입니다.",
-    ],
-    qaKo: [["phase 정보가 꼭 필요한가요?", "동일한 pose라도 문맥이 다르면 다른 action이 필요하므로 phase conditioning이 도움이 됩니다."]],
-  },
-  "The reward balances fidelity and stability": {
-    scriptKo: [
-      "reward는 reference fidelity와 physical stability를 함께 잡습니다. pose만 맞춘다고 끝나는 것이 아니라 root motion, contact, regularization도 필요합니다.",
-      "즉 보기 좋은 imitation과 제어 가능한 imitation을 동시에 맞춰야 합니다.",
-    ],
-    qaKo: [["왜 reward가 이렇게 여러 항으로 구성되나요?", "whole-body tracking은 자세만 맞춘다고 안정해지지 않아서 물리적 안정 항이 함께 필요하기 때문입니다."]],
-  },
-  "Stage 1 already produces a strong simulator controller": {
-    scriptKo: [
-      "중요한 점은 stage 1만으로도 simulator 안에서는 이미 꽤 강한 controller가 나온다는 것입니다.",
-      "그래서 stage 2는 skill discovery가 아니라 transfer repair 단계로 이해하는 것이 맞습니다.",
-    ],
-    qaKo: [["왜 pretrained policy가 강해야 하나요?", "그래야 실제 rollout이 informative해지고, stage 2가 transfer 문제 자체에 집중할 수 있습니다."]],
-  },
-  "Pretraining alone cannot reveal the missing hardware physics": {
-    scriptKo: [
-      "아무리 simulator에서 잘해도 hardware-specific physics는 드러나지 않습니다. 그 policy는 결국 simulator의 transition function 아래에서만 최적화된 것이기 때문입니다.",
-      "그래서 실제 rollout이 반드시 필요합니다.",
-    ],
-    qaKo: [["simulator 성능이 높으면 real에서도 어느 정도 되지 않나요?", "어느 정도는 되지만, 민첩한 동작에서는 작은 물리 오차가 빠르게 누적돼 실패로 이어질 수 있습니다."]],
-  },
-  "Real rollouts provide the missing supervision": {
-    scriptKo: [
-      "실제 rollout은 바로 그 missing supervision입니다. state, action, next state를 통해 하드웨어가 simulator와 어떻게 다른지를 직접 보여줍니다.",
-      "ASAP은 이 데이터를 아주 비싸고 중요한 신호로 다룹니다.",
-    ],
-    qaKo: [["왜 real data를 직접 policy training보다 simulator alignment에 쓰나요?", "실제 데이터는 비싸기 때문에, simulator 안에서 반복 활용할 수 있는 형태로 바꾸는 편이 효율적이기 때문입니다."]],
-  },
-  "Replay turns hardware experience into a training target": {
-    scriptKo: [
-      "같은 state-action 쌍을 simulator에 replay하면 real next state와 직접 비교할 수 있습니다.",
-      "이 비교가 바로 delta action model을 학습시키는 target이 됩니다.",
-    ],
-    qaKo: [["왜 replay가 중요하죠?", "제한된 real rollout을 simulator-side supervision으로 바꿔 반복 사용할 수 있게 해주기 때문입니다."]],
-  },
-  "ASAP models the gap in action space": {
-    scriptKo: [
-      "ASAP은 gap을 state가 아니라 action space에서 모델링합니다. 즉, simulator가 실제로는 다른 effective action을 본다고 생각하는 관점입니다.",
-      "이렇게 하면 policy interface를 유지한 채로 물리 차이를 흡수할 수 있습니다.",
-    ],
-    qaKo: [["왜 state residual이 아니라 action residual인가요?", "controller가 원래 사용하는 제어 인터페이스를 유지하면서 hidden physics를 반영하기 쉽기 때문입니다."]],
-  },
-  "Why action residuals are attractive here": {
-    scriptKo: [
-      "action residual의 장점은 local하고 state-dependent한 bias를 제어 입력 쪽에서 바로 흡수할 수 있다는 점입니다.",
-      "반면 parameter tuning은 너무 전역적일 수 있고, state correction은 제어 관점의 해석이 약해질 수 있습니다.",
-    ],
-    qaKo: [["action residual이 만능인가요?", "아니고, 큰 전역 오차에는 한계가 있지만 이 논문이 겨냥한 effective control bias에는 잘 맞습니다."]],
-  },
-  "The aligned simulator is the key artifact": {
-    scriptKo: [
-      "이 논문에서 진짜 중요한 artifact는 aligned simulator입니다. residual을 학습한 뒤 그걸 simulator 안에 고정해두고 RL을 다시 돌립니다.",
-      "즉 real data는 직접 policy를 끝까지 학습시키는 것이 아니라 simulator를 더 나은 teacher로 만드는 데 쓰입니다.",
-    ],
-    qaKo: [["왜 delta model보다 aligned simulator를 더 중요하게 보나요?", "최종적으로 controller를 바꾸는 것은 그 simulator 안에서 다시 이루어지는 RL이기 때문입니다."]],
-  },
-  "Fine-tuning is still a control problem, not just a fitting problem": {
-    scriptKo: [
-      "여기서 중요한 건 residual fitting이 끝이 아니라는 점입니다. local transition을 고친 뒤, policy는 그 새로운 dynamics 아래에서 다시 feedback behavior를 배워야 합니다.",
-      "그래서 ASAP은 identification과 RL adaptation이 결합된 구조로 보는 게 맞습니다.",
-    ],
-    qaKo: [["그럼 one-step alignment만 잘하면 끝인가요?", "아니요. 그 정렬이 policy의 장기적 closed-loop behavior 개선으로 이어져야 합니다."]],
-  },
-  "Deployment remains operationally simple": {
-    scriptKo: [
-      "운용 측면에서 좋은 점은 최종 배포가 단순하다는 것입니다. 실제 로봇에는 policy 하나만 올라갑니다.",
-      "delta model은 training-time adapter이고 runtime patch가 아닙니다.",
-    ],
-    qaKo: [["runtime에 delta model을 같이 쓰면 더 좋지 않나요?", "가능성은 있지만 이 논문은 배포 단순성과 정책 자체의 개선을 더 강조합니다."]],
-  },
-  "What the residual is likely absorbing": {
-    scriptKo: [
-      "이 residual이 흡수하는 것은 actuator lag, contact bias, linkage effect 같은 구조적 오차라고 해석할 수 있습니다.",
-      "특히 ankle-contact chain 쪽에서 이런 차이가 크게 나타날 가능성이 높습니다.",
-    ],
-    qaKo: [["정확히 어떤 물리를 배운다고 볼 수 있나요?", "완전한 모델 식별이라기보다, policy에 중요한 hardware bias를 action-side에서 흡수한다고 보는 게 적절합니다."]],
-  },
-  "Method summary": {
-    scriptKo: [
-      "정리하면, 사람 motion으로 tracker를 pretrain하고, 실제 rollout으로 simulator를 align한 뒤, 그 aligned simulator에서 policy를 다시 fine-tune하는 구조입니다.",
-      "즉, real data는 직접 skill을 처음부터 배우게 하는 것이 아니라 transfer loop를 고치는 데 쓰입니다.",
-    ],
-    qaKo: [["이 방법의 핵심 단계 하나만 고르라면?", "real rollout으로 simulator를 align하고 그 안에서 RL을 다시 돌리는 단계입니다."]],
-  },
-  "What convincing evidence should look like": {
-    scriptKo: [
-      "설득력 있는 증거는 순서가 있습니다. 먼저 local dynamics matching이 보여야 하고, 다음에는 cross-dynamics transfer 개선이 보여야 하며, 마지막에 real robot closed-loop improvement가 보여야 합니다.",
-      "이 순서를 만족해야 논문 전체 논리가 단단해집니다.",
-    ],
-    qaKo: [["왜 evidence의 순서를 강조하나요?", "결과가 좋아 보이는 것만으로는 부족하고, 왜 좋아졌는지까지 이어져야 설득력이 생기기 때문입니다."]],
-  },
-  "The evaluation asks three separate questions": {
-    scriptKo: [
-      "평가는 세 층으로 나뉩니다. replay에서 dynamics matching이 되는지, cross-simulator transfer가 좋아지는지, 실제 로봇에서 agility가 더 살아남는지입니다.",
-      "각 실험은 서로 다른 질문에 답합니다.",
-    ],
-    qaKo: [["세 평가를 다 해야 하나요?", "네. 하나만 보면 fitting인지, transfer improvement인지, real value인지 구분이 어렵습니다."]],
-  },
-  "The first win is better transition matching": {
-    scriptKo: [
-      "첫 번째 성공은 corrected simulator가 실제 transition에 더 가까워진다는 것입니다.",
-      "이 단계가 있어야 뒤의 policy improvement도 단순 우연이 아니라는 해석이 가능합니다.",
-    ],
-    qaKo: [["replay matching이 좋아졌다고 real transfer도 좋아진다고 볼 수 있나요?", "직접 동일하진 않지만, aligned simulator가 의미 있는 방향으로 바뀌었다는 첫 증거가 됩니다."]],
-  },
-  "Then closed-loop transfer improves": {
-    scriptKo: [
-      "그 다음 중요한 것은 closed-loop transfer입니다. aligned simulator에서 다시 학습한 policy가 다른 dynamics에서도 더 잘 버티는지를 봅니다.",
-      "여기서야 비로소 controller 자체가 좋아졌다고 말할 수 있습니다.",
-    ],
-    qaKo: [["왜 sim-to-sim 결과도 보나요?", "hardware만 보면 confound가 많아서, dynamics shift 하에서 controller improvement를 더 깨끗하게 보기 위해서입니다."]],
-  },
-  "Hard motions are the right stress test": {
-    scriptKo: [
-      "hard motion이 중요한 이유는 쉬운 동작에서는 transfer gap이 잘 안 보이기 때문입니다.",
-      "점프나 explosive motion처럼 작은 착지 오차가 전체 실패로 이어지는 동작에서 방법의 차이가 명확해집니다.",
-    ],
-    qaKo: [["왜 평균 성능보다 hard motion을 더 봐야 하나요?", "이 논문이 겨냥하는 물리 오차는 바로 그런 failure-sensitive motion에서 가장 잘 드러나기 때문입니다."]],
-  },
-  "Real-robot data is scarce enough that data efficiency matters": {
-    scriptKo: [
-      "실제 로봇 데이터는 비싸고 안전 제약도 큽니다. 그래서 적은 rollout으로 많은 학습 가치를 뽑아내는 구조가 중요합니다.",
-      "ASAP은 replay와 aligned simulation을 통해 이 효율을 확보합니다.",
-    ],
-    qaKo: [["real rollout을 더 많이 모으면 그냥 해결되지 않나요?", "일부는 그렇지만 비용이 너무 크기 때문에, 적은 데이터로 simulator를 개선하는 방향이 실용적입니다."]],
-  },
-  "The main result is better closed-loop agility on hardware": {
-    scriptKo: [
-      "핵심 결과는 결국 여기입니다. ASAP을 거친 policy가 실제 로봇에서 더 많은 agile motion을 유지합니다.",
-      "즉 논문의 가치는 simulation 안이 아니라 deployment 결과에서 평가해야 합니다.",
-    ],
-    qaKo: [["결국 한 문장 결과는 뭔가요?", "실제 하드웨어에서 민첩한 전신 동작이 더 잘 살아남습니다."]],
-  },
-  "Recovered agility is the point": {
-    scriptKo: [
-      "이 히어로 슬라이드는 결과를 직관적으로 보여주기 위한 장면입니다. transfer 방법의 성패는 동작의 style이 아니라, 접촉 이후에도 그 동작이 계속 살아 있느냐로 봐야 합니다.",
-      "ASAP은 바로 그 회복된 agility를 목표로 합니다.",
-    ],
-    qaKo: [["이 슬라이드에서 무엇을 집중해서 봐야 하나요?", "동작이 시작되는 순간보다 착지와 회복 구간에서 얼마나 안정적으로 이어지는지를 보시면 됩니다."]],
-  },
-  "Real-world execution is the decisive lens": {
-    scriptKo: [
-      "real-world execution이 결정적이라는 말은, 시뮬레이터에서 좋아 보이는 것만으로는 논문이 완성되지 않는다는 뜻입니다.",
-      "닫힌 루프에서 실제 로봇이 그 행동을 끝까지 소유하느냐가 최종 판단 기준입니다.",
-    ],
-    qaKo: [["왜 real-world closed loop를 그렇게 강조하나요?", "이 논문이 해결하려는 문제가 본질적으로 simulator-to-real transfer 문제이기 때문입니다."]],
-  },
-  "More real data helps until the important mismatch has already been covered": {
-    scriptKo: [
-      "real data는 많을수록 무조건 좋은 것이 아니라, 중요한 mismatch를 얼마나 덮느냐가 핵심입니다.",
-      "결정적인 failure mode를 이미 봤다면 이후에는 수익 체감이 생길 수 있습니다.",
-    ],
-    qaKo: [["데이터가 많으면 계속 좋아지지 않나요?", "좋아지긴 하지만 중요한 mismatch coverage가 끝나면 증가폭은 줄어드는 경향이 있습니다."]],
-  },
-  "How the delta is used matters as much as learning it": {
-    scriptKo: [
-      "delta를 학습하는 것만으로는 부족하고, 그걸 어떻게 쓰느냐가 중요합니다.",
-      "ASAP의 포인트는 noise처럼 섞는 게 아니라 simulator dynamics를 바꾸고 그 안에서 RL을 다시 한다는 데 있습니다.",
-    ],
-    qaKo: [["그냥 noise나 robustness training으로는 안 되나요?", "일반적 robustness는 도와줄 수 있지만, 측정된 실제 bias를 정확히 반영하진 못합니다."]],
-  },
-  "The residual is structured rather than uniform": {
-    scriptKo: [
-      "residual이 모든 관절에 균일하게 걸리는 게 아니라 특정 부위에 집중된다는 점이 중요합니다.",
-      "이건 모델이 random jitter가 아니라 구조적인 hardware bias를 배우고 있다는 해석을 가능하게 합니다.",
-    ],
-    qaKo: [["이 residual의 구조성이 왜 중요한가요?", "그 자체가 learned correction이 물리적으로 의미 있는 방향일 가능성을 높여주기 때문입니다."]],
-  },
-  "What ASAP adds": {
-    scriptKo: [
-      "요약하면 ASAP이 더하는 것은 real-data action residual을 통해 simulator를 개선하고, 그 simulator에서 policy를 다시 학습시키는 고리입니다.",
-      "즉 새로운 모션 생성이 아니라 transfer-aware training loop가 핵심입니다.",
-    ],
-    qaKo: [["ASAP의 novelty를 한 줄로 다시 말하면?", "실제 롤아웃으로 simulator를 보정한 뒤 그 안에서 정책을 다시 학습시키는 transfer loop입니다."]],
-  },
-  "Where the method is strongest": {
-    scriptKo: [
-      "이 방법은 simulator policy가 이미 강하지만 hardware transfer가 취약할 때 가장 잘 맞습니다.",
-      "특히 impact와 balance sensitivity가 큰 dynamic whole-body motion에서 가장 설득력이 큽니다.",
-    ],
-    qaKo: [["어떤 문제에 ASAP을 바로 써볼 만한가요?", "simulator에서는 잘 되지만 real hardware에서 깨지는 dynamic humanoid tracking 문제입니다."]],
-  },
-  "Limits and next comparisons": {
-    scriptKo: [
-      "물론 한계도 분명합니다. rollout coverage가 너무 좁으면 residual이 볼 수 있는 mismatch도 제한되고, action residual 표현 자체의 한계도 있습니다.",
-      "다음 단계는 더 다양한 모션, 더 많은 embodiment, 그리고 iterative refresh 구조를 보는 것입니다.",
-    ],
-    qaKo: [["다음으로 가장 중요한 후속 실험은 뭔가요?", "더 다양한 motion set과 반복적 real-data refresh가 가능한지 보는 것입니다."]],
-  },
-  Resources: {
-    scriptKo: [
-      "마지막으로 논문, 프로젝트, 코드 링크입니다. 발표에서 가져가실 핵심은, 실제 물리 차이가 문제라면 simulator를 먼저 더 실제답게 만들고 그 안에서 정책을 다시 가르쳐야 한다는 점입니다.",
-      "이 아이디어가 ASAP의 가장 오래 남는 메시지라고 생각합니다.",
-    ],
-    qaKo: [["발표를 마치며 한 줄 takeaway는?", "실패 원인이 simulator physics라면, policy보다 먼저 simulator를 더 실제답게 가르쳐야 합니다."]],
-  },
-};
-
-const PRESENTER_DETAIL_BY_TITLE = {
-  ASAP: `여기서 agile whole-body skill은 보행처럼 반복적인 저난도 동작이 아니라, 점프·킥·착지처럼 전신 협응과 접촉 타이밍이 중요한 동작을 뜻합니다. Unitree G1은 이 논문이 실제 전이를 검증하는 대상 로봇이고, 발표에서는 '어떤 로봇에 어떤 종류의 동작을 옮기려는가'를 먼저 분명히 해두는 것이 좋습니다.`,
-  "What the paper is trying to preserve": `closed-loop execution은 한 번 모션을 재생하는 것이 아니라, 현재 상태를 계속 읽으면서 다음 action을 다시 계산하는 제어를 뜻합니다. 그래서 style보다 더 중요한 기준은 착지 후 회복, 다음 동작으로의 연결, 균형 재획득 같은 연속적 안정성입니다.`,
-  "The bottleneck is no longer motion generation": `reference motion reconstruction은 영상이나 모션 데이터에서 사람 동작을 구조화된 시퀀스로 복원하는 과정입니다. 즉 이 슬라이드는 '행동의 원본을 만드는 기술'은 이미 많이 발전했고, 남은 병목이 실제 물리와의 불일치라는 점을 짚는 역할을 합니다.`,
-  "Core mechanism": `action residual은 정책이 낸 action에 상태 의존적인 보정값을 더해, simulator가 실제 하드웨어에 더 가까운 결과를 내도록 만드는 모듈입니다. fine-tuning은 그 보정된 물리 안에서 정책을 다시 학습시키는 단계이고, 최종 배포는 이 재학습된 정책 하나로 끝납니다.`,
-  "Why this problem matters now": `이 슬라이드의 stack은 최근 humanoid 연구가 어디까지 성숙했는지를 보여줍니다. reference motion, whole-body control, deployment 준비가 강해질수록 오히려 마지막 interface인 simulator physics와 hardware physics의 차이가 더 눈에 띄게 남습니다.`,
-  "Agile whole-body skills expose mismatch early": `impact timing은 접촉이 한 프레임만 늦어도 다음 상태가 완전히 달라지는 현상을 말합니다. hidden compliance는 발, 발목, 링크가 시뮬레이터보다 더 유연하게 반응하는 실제 하드웨어 특성이고, 이런 요소가 짧은 시간 안에 겹치면서 mismatch를 확대합니다.`,
-  "A useful reading frame for this literature": `motion source는 행동이 어디에서 왔는지, control objective는 정책이 정확히 무엇을 보존하려는지, transfer strategy는 sim-to-real gap을 어떻게 다루는지, real evidence는 무엇을 성공 증거로 볼지를 뜻합니다. 이 네 축으로 읽으면 관련 연구가 한눈에 정리됩니다.`,
-  "DeepMimic established the imitation-learning template": `reference-tracking RL template은 목표 모션을 주고, 그 모션을 따라가도록 reward를 설계한 뒤 RL로 폐루프 정책을 학습시키는 전형적인 구조입니다. DeepMimic은 이 구조를 동적 전신 동작에 설득력 있게 보여준 대표 사례입니다.`,
-  "AMP made motion priors a first-class control signal": `motion prior는 '어떤 동작이 자연스러운가'에 대한 학습된 선호라고 볼 수 있습니다. AMP는 discriminator 기반 보상으로 이 prior를 정책 학습에 직접 연결했고, 결과적으로 손으로 일일이 style reward를 짜지 않아도 richer behavior를 만들 수 있음을 보였습니다.`,
-  "HumanPlus highlights real humanoid imitation and deployment": `이 슬라이드에서 deployment story라는 표현은 실제 인간 행동을 로봇에서 실행 가능하게 만드는 전체 시스템 관점을 뜻합니다. ASAP은 그 전체 중에서도 특히 simulator alignment와 transfer 메커니즘을 더 정밀하게 다루는 쪽에 가깝습니다.`,
-  "Humanoid Parkour pushes dynamic task difficulty from another direction": `agility pressure는 과제가 요구하는 동적 난도, 즉 속도·충격·장기 contact sequence가 controller를 얼마나 몰아붙이는지를 뜻합니다. Parkour류 문제는 이 압력을 크게 높여 transfer 문제가 빨리 드러나게 만듭니다.`,
-  "Classical transfer baselines attack the gap differently": `Figure 3는 이 논문이 baseline을 어떻게 정의하는지 매우 실용적으로 보여 줍니다. Vanilla는 보정 없이 simulator를 그대로 사용하고, SysID는 simulator parameter를 맞추며, delta dynamics는 next-state prediction을 직접 고칩니다. ASAP은 여기서 action interface를 보정한다는 점이 다릅니다.
-
-실무적으로 중요한 차이는 policy가 무엇을 경험하며 학습하느냐입니다. forward prediction만 맞추는 것과, policy가 실제와 더 비슷한 effective action response를 보며 다시 학습하는 것은 제어 성질이 다를 수밖에 없습니다.`,
-  "ASAP's academic position": `이 포지셔닝 맵은 정밀한 정량 그래프라기보다, ASAP의 기여가 어디에 놓이는지를 빠르게 정리하기 위한 개념도입니다. x축은 locomotion 중심에서 expressive whole-body control로, y축은 simulation 중심에서 real deployment 중심으로 읽으시면 됩니다.
-
-이 위치가 시사하는 바는 분명합니다. ASAP은 새로운 motion source보다 transfer mechanism을, 새로운 embodiment보다 deployment survivability를 더 직접적인 기여로 삼습니다.`,
-  "The SOTA question here is precise": `richness는 행동의 표현력과 다양성, robustness는 dynamics가 바뀌어도 policy가 버티는 정도, evidence는 그 이득이 실제 하드웨어 폐루프 실행까지 이어지는지를 뜻합니다. 이 세 축을 분리하지 않으면 서로 다른 논문을 같은 기준으로 비교하기 어렵습니다.`,
-  "At this point, the paper's burden is clear": `burden이라는 표현은 이 논문이 무엇을 반드시 증명해야 하는지를 뜻합니다. 이미 reference generation과 simulator tracking이 강한 상황에서, ASAP은 imitation stack 전체가 아니라 마지막 transfer failure만 정확히 줄였다는 것을 보여줘야 합니다.`,
-  "Stage 1 begins with human motion, not robot demonstrations": `body reconstruction은 비디오에서 관절과 신체 구조를 복원해 학습 가능한 모션 표현으로 바꾸는 과정입니다. retargeting은 그 사람 중심 표현을 Unitree G1의 관절 구조와 길이에 맞게 변환하는 단계입니다.`,
-  "Reference preparation is not cosmetic": `shape fitting은 인체 형상 모델을 영상에 맞춰 사람의 자세와 체형을 추정하는 과정이고, retargeting은 그 결과를 로봇 관절 공간으로 옮기는 과정입니다. 이 단계가 부정확하면 뒤의 transfer 실패가 physics 문제인지 reference 문제인지 분리할 수 없습니다.`,
-  "The tracking policy is phase-aware and feedback-driven": `phase는 현재 motion cycle 안에서 시간이 어디쯤 진행됐는지를 나타내는 신호입니다. feedback-driven이라는 말은 policy가 현재 관절 상태, 속도, 균형 오차를 읽고 그때그때 보정 action을 낸다는 뜻으로, 단순 재생기와 구별됩니다.`,
-  "The reward balances fidelity and stability": `pose tracking은 관절 자세를, root tracking은 몸통의 전역 위치와 속도를, contact behavior는 발 지지와 착지 패턴을 맞추는 항입니다. regularization은 과도한 토크나 비현실적 움직임을 억제해 simulator exploit을 막는 역할을 합니다.`,
-  "Stage 1 already produces a strong simulator controller": `competent simulator policy라는 말은, 실제 전이만 없을 뿐 simulator 안에서는 이미 동작 구조와 timing을 꽤 잘 유지한다는 뜻입니다. 즉 stage 1 policy는 warm-up 수준이 아니라, hardware mismatch를 드러낼 만큼 충분히 강한 baseline입니다.
-
-이 점이 중요한 이유는 stage 2의 역할을 분명히 해 주기 때문입니다. ASAP의 두 번째 단계는 skill discovery가 아니라, 이미 있는 skill이 hardware에서 깨지는 이유를 줄이는 transfer repair 단계입니다.`,
-  "Pretraining alone cannot reveal the missing hardware physics": `transition function은 현재 state와 action이 다음 state를 어떻게 만드는지를 정의하는 dynamics 자체입니다. simulator 안에서 잘된 정책은 이 함수가 틀렸다는 사실을 스스로 드러내지 못하므로, real rollout이 별도 감독 신호로 필요합니다.`,
-  "Real rollouts provide the missing supervision": `state-action-next-state tuple은 제어에서 가장 직접적인 물리 증거입니다. reward보다 더 근본적으로 '같은 명령을 줬을 때 실제 하드웨어가 어떻게 반응했는가'를 보여 주기 때문에 simulator alignment의 교사로 쓰기 적합합니다.`,
-  "Replay turns hardware experience into a training target": `Figure 4는 replay가 왜 실용적인지 잘 보여 줍니다. 같은 trajectory를 vanilla, SysID, delta dynamics, ASAP 순서로 다시 재생했을 때, 어떤 보정이 mismatch를 가장 오래 낮게 유지하는지가 바로 드러납니다.
-
-핵심은 이 절차가 limited real data를 simulator alignment용 supervised target으로 바꿔 준다는 점입니다. 같은 state-action을 다시 넣어 보는 구조이기 때문에, policy 차이보다 dynamics 차이에 더 집중해서 해석할 수 있습니다.`,
-  "ASAP models the gap in action space": `effective action은 정책이 의도한 명령이 실제 하드웨어에서 결과적으로 어떤 입력처럼 작용했는지를 뜻합니다. actuator delay, bandwidth limit, low-level control bias가 있으면 nominal action과 effective action이 달라질 수 있습니다.`,
-  "Why action residuals are attractive here": `local state-dependent bias는 특정 상태나 접촉 국면에서만 드러나는 오차를 뜻합니다. 이런 종류의 오차는 전역 파라미터 한두 개를 맞추는 것보다, action residual처럼 상태 조건부 보정으로 다루는 편이 더 자연스러운 경우가 많습니다.`,
-  "The aligned simulator is the key artifact": `aligned simulator는 residual을 내장한 뒤 실제와 더 비슷한 transition을 만드는 학습 환경입니다. 핵심은 real data 한 번으로 끝나는 것이 아니라, 그 이후 RL 전 과정을 더 정직한 물리 위에서 반복할 수 있게 된다는 점입니다.`,
-  "Fine-tuning is still a control problem, not just a fitting problem": `local transition fit이 좋아진다고 곧바로 장기 폐루프 behavior가 좋아지는 것은 아닙니다. RL 재학습이 필요한 이유는, 보정된 물리 아래에서 recovery timing, contact strategy, state visitation 자체가 다시 최적화되어야 하기 때문입니다.`,
-  "Deployment remains operationally simple": `runtime patch가 아니라는 말은, 별도 residual 모듈을 실시간으로 돌리지 않고 최종 정책만 로봇에 배포한다는 뜻입니다. 연구 단계의 복잡함을 runtime으로 넘기지 않는다는 점에서 실용성이 있습니다.`,
-  "What the residual is likely absorbing": `actuator lag는 명령과 실제 출력 사이의 시간 지연, contact bias는 지면 접촉 모델 차이, linkage effect는 링크와 관절 체인의 탄성·유격이 만들어내는 오차를 뜻합니다. 논문은 이를 완전한 모델 식별보다 control-relevant correction으로 해석하는 편이 타당합니다.`,
-  "Method summary": `이 슬라이드는 파이프라인을 다시 압축해서 기억에 남기기 위한 정리 슬라이드입니다. 핵심 동사는 pretrain, measure, align, fine-tune 네 개로 잡으면 전체 메커니즘을 짧게 복기하기 좋습니다.`,
-  "What convincing evidence should look like": `local dynamics matching은 one-step 수준에서 simulator가 실제 transition에 가까워졌는지를 뜻하고, closed-loop improvement는 그 보정이 장기 제어 성능까지 이어졌는지를 뜻합니다. 둘 다 있어야 method claim이 닫힙니다.`,
-  "The evaluation asks three separate questions": `replay, cross-simulator, real robot, ablation은 각각 simulator fidelity, controller transferability, 실제 운용 가치, 기여 요소 분해를 담당합니다. 네 결과 층이 합쳐져야 '왜 좋아졌는가'까지 설명할 수 있습니다.`,
-  "The first win is better transition matching": `replay error는 실제 next state와 보정된 simulator next state의 차이를 말합니다. contact timing이 tighter해졌다는 것은 착지나 발 접촉 시점이 hardware trace와 더 비슷해졌다는 뜻이고, 이는 민첩한 동작에서 특히 중요합니다.`,
-  "Then closed-loop transfer improves": `Figure 6는 replay fitting이 실제 controller improvement로 이어졌는지를 보여 주는 핵심 시각 자료입니다. IsaacGym, IsaacSim, Genesis처럼 dynamics가 다른 simulator들 사이에서도 fine-tuned policy가 더 부드럽고 안정적인 tracking을 보입니다.
-
-즉 aligned simulator의 가치는 one-step prediction이 좋아졌다는 데서 끝나지 않습니다. 그 환경 안에서 policy가 다시 학습되었을 때 closed-loop behavior 자체가 더 좋아지는지가 이 슬라이드의 핵심입니다.`,
-  "Hard motions are the right stress test": `failure-sensitive motion은 작은 timing error나 contact error가 바로 넘어짐으로 이어지는 동작을 말합니다. 점프와 explosive skill은 이런 민감도를 크게 만들어 transfer method의 진짜 차이를 드러냅니다.`,
-  "Real-robot data is scarce enough that data efficiency matters": `safety-limited budget은 하드웨어 롤아웃이 장비 손상, 리셋 시간, 감독 비용 때문에 매우 제한적이라는 뜻입니다. replay compatibility는 한번 모은 데이터를 simulator 쪽에서 여러 번 재사용할 수 있게 해주는 성질입니다.`,
-  "The main result is better closed-loop agility on hardware": `Figure 7은 before/after 비교를 가장 직접적으로 보여 줍니다. fine-tuning 전에는 lower-body correction이 급하고 posture가 쉽게 무너지지만, fine-tuning 후에는 동일한 motion에서 자세 유지와 timing이 더 안정적입니다.
-
-여기서 skill preservation은 intended motion structure가 실제에서도 유지되는지를, recovery quality는 mismatch 이후 자세를 얼마나 빨리 되살리는지를 뜻합니다. 그리고 이 개선이 single-policy deployment를 유지한 채 얻어진다는 점이 실용적인 장점입니다.`,
-  "Recovered agility is the point": `이 슬라이드는 정량보다 정성 해석이 더 중요한 hero slide입니다. 회복된 agility는 동작 시작이 아니라 접촉 이후의 자세 회복, 다음 동작으로의 연결, 무너지지 않는 timing에서 읽어야 합니다.`,
-  "Real-world execution is the decisive lens": `decisive lens라는 말은 모든 중간 결과가 결국 real-world closed-loop behavior로 수렴해야 한다는 뜻입니다. simulator alignment가 예쁘게 보이는지보다, 실제 로봇이 그 이득을 소유하는지가 결론입니다.`,
-  "More real data helps until the important mismatch has already been covered": `Figure 9는 데이터가 많을수록 무조건 좋아지는 것이 아니라, 어떤 mismatch를 얼마나 덮고 있는지가 더 중요하다는 점을 보여 줍니다. dataset size, horizon, action norm 세 축 모두 일정 구간 이후에는 수익 체감이 나타납니다.
-
-이 결과를 practical하게 읽으면, rollout을 무작정 늘리기보다 실패가 반복되는 contact regime을 더 잘 덮는 수집 전략이 중요하다는 뜻입니다.`,
-  "How the delta is used matters as much as learning it": `Figure 10은 같은 delta-action model을 써도 fine-tuning 방식에 따라 결과가 달라진다는 점을 보여 줍니다. fixed-point iteration이나 gradient search보다 RL fine-tuning이 더 낮은 MPJPE를 얻는 이유는, policy가 corrected dynamics에 맞춰 closed-loop strategy를 다시 조직할 수 있기 때문입니다.
-
-따라서 핵심은 delta를 학습하는 것만이 아니라, 그 delta를 simulator 안에 넣고 policy adaptation까지 포함시키는 전체 루프에 있습니다.`,
-  "The residual is structured rather than uniform": `Figure 12는 delta magnitude가 모든 관절에 균일하게 퍼지지 않고, 특정 joint와 contact-sensitive body part에 더 집중된다는 점을 보여 줍니다. 이 패턴은 learned correction이 arbitrary noise가 아니라 실제 hardware bias를 반영할 가능성을 높여 줍니다.
-
-특히 lower-body와 contact chain 부근에 correction이 크다는 해석은, 왜 dynamic landing과 recovery에서 ASAP이 더 큰 이득을 내는지와도 잘 연결됩니다.`,
-  "What ASAP adds": `이 슬라이드의 before-during-after 구조는 novelty를 시간축으로 정리한 것입니다. 즉 기존 강한 정책이 어디서 깨졌고, 실제 데이터가 무엇을 가르쳤으며, 그 결과 배포 시 무엇이 달라졌는지를 순서대로 압축합니다.`,
-  "Where the method is strongest": `best case는 simulator policy가 이미 competent하지만 hardware dynamics에 brittle한 경우이고, weaker case는 simulator 자체가 전반적으로 틀렸거나 real rollout coverage가 너무 좁은 경우입니다. 이 경계 조건을 솔직히 말해 주는 것이 발표의 rigor를 높입니다.`,
-  "Limits and next comparisons": `coverage limit은 residual이 보지 못한 failure mode는 고칠 수 없다는 뜻이고, representation limit은 action residual이 모든 구조적 gap을 표현하진 못한다는 뜻입니다. 자연스러운 다음 단계는 broader motion set과 iterative refresh, 다른 로봇으로의 확장입니다.`,
-  Resources: `마지막 quote는 이 논문의 일반화 가능한 메시지를 압축한 문장입니다. simulator가 잘못된 physics를 가르치고 있다면 policy를 탓하기 전에 학습 환경부터 실제답게 만드는 것이 더 효과적일 수 있다는 교훈으로 받아들이면 됩니다.`,
-};
-
-const PRESENTER_TITLE_ALIASES = {
-  "Target of transfer preservation": "What the paper is trying to preserve",
-  "Where the real transfer failure comes from": "The bottleneck is no longer motion generation",
-  "Why transfer alignment is now a practical bottleneck": "Why this problem matters now",
-  "How to compare prior work on this problem": "A useful reading frame for this literature",
-  "What ASAP changes relative to nearby methods": "ASAP's academic position",
-  "What counts as success for ASAP": "The SOTA question here is precise",
-  "What ASAP actually claims": "At this point, the paper's burden is clear",
-  "Pipeline starts from video-to-robot retargeting": "Stage 1 begins with human motion, not robot demonstrations",
-  "Reference preparation and physical feasibility": "Reference preparation is not cosmetic",
-  "Stage 1 gives a usable simulator tracker": "Stage 1 already produces a strong simulator controller",
-  "Why stage 1 is still insufficient on hardware": "Pretraining alone cannot reveal the missing hardware physics",
-  "Real rollouts as alignment supervision": "Real rollouts provide the missing supervision",
-  "Replay as paired transition supervision": "Replay turns hardware experience into a training target",
-  "Contribution 1: learn an action-space correction": "ASAP models the gap in action space",
-  "Why action-space correction is practical": "Why action residuals are attractive here",
-  "Contribution 2: train inside the corrected simulator": "The aligned simulator is the key artifact",
-  "Why RL fine-tuning is still required": "Fine-tuning is still a control problem, not just a fitting problem",
-  "Deployment remains a single-policy system": "Deployment remains operationally simple",
-  "Two-stage method summary": "Method summary",
-  "What evidence would actually validate ASAP": "What convincing evidence should look like",
-  "Evaluation is designed around three practical questions": "The evaluation asks three separate questions",
-  "Check 1: simulator transitions match hardware better": "The first win is better transition matching",
-  "Check 2: the aligned simulator yields a better controller": "Then closed-loop transfer improves",
-  "Hard motions as the proper stress test": "Hard motions are the right stress test",
-  "Why data efficiency matters": "Real-robot data is scarce enough that data efficiency matters",
-  "Check 3: more agility survives on hardware": "The main result is better closed-loop agility on hardware",
-  "Recovered agility in real execution": "Recovered agility is the point",
-  "Real hardware is the final test": "Real-world execution is the decisive lens",
-  "Additional real data helps until coverage saturates": "More real data helps until the important mismatch has already been covered",
-  "How delta usage affects the gain": "How the delta is used matters as much as learning it",
-  "The residual reflects structured bias": "The residual is structured rather than uniform",
-  "Practical takeaway: what ASAP adds": "What ASAP adds",
-  "Practical takeaway: when this method is a good fit": "Where the method is strongest",
-  "Practical takeaway: limits before adopting ASAP": "Limits and next comparisons",
-};
-
-const PRESENTER_EXTRA_QA_BY_TITLE = {
-  ASAP: [
-    ["이 방법을 우리 시스템에 옮기려면 최소 무엇이 필요하나요?", "강한 simulator baseline, real rollout logging, 그리고 같은 state-action을 simulator에서 replay할 수 있는 상태 정의가 최소 구성입니다."],
-    ["우리 연구와 바로 연결되는 포인트는 뭔가요?", "정책 구조보다 simulator mismatch가 더 큰 병목인지 먼저 분해하라는 점입니다."],
-  ],
-  "What the paper is trying to preserve": [
-    ["비디오에서는 어디를 중점적으로 봐야 하나요?", "공중 자세보다 착지 직후 회복, 발 접촉 안정화, 다음 동작 연결을 보시면 됩니다."],
-    ["이 기준은 다른 로봇에도 유효한가요?", "네. embodiment가 달라도 closed-loop recovery를 보는 원칙은 같습니다."],
-  ],
-  "The bottleneck is no longer motion generation": [
-    ["정말 generation 병목은 끝났다고 봐도 되나요?", "완전히 끝났다는 뜻은 아니고, 이 논문 맥락에서는 transfer가 상대적으로 더 큰 병목이라는 뜻입니다."],
-    ["generation과 transfer를 실험적으로 어떻게 분리하나요?", "같은 reference와 same pretraining을 고정하고 transfer method만 바꿔 비교하면 됩니다."],
-  ],
-  "Core mechanism": [
-    ["delta model은 policy와 동시에 학습하나요?", "아닙니다. real rollout으로 delta를 먼저 학습하고, 그다음 frozen delta가 들어간 simulator에서 policy를 fine-tune합니다."],
-    ["runtime에 delta를 안 쓰는 이유는 뭔가요?", "논문은 adaptation을 policy 자체에 흡수시켜 배포 복잡도를 낮추는 쪽을 택합니다."],
-  ],
-  "Why this problem matters now": [
-    ["왜 지금 humanoid에서 특히 중요하죠?", "표현력 높은 전신 동작이 가능해질수록 실제 물리 mismatch가 더 자주, 더 크게 드러나기 때문입니다."],
-    ["locomotion-only 시스템에도 같은 논리가 적용되나요?", "적용되지만, agile whole-body에서 mismatch 노출 속도가 더 빠릅니다."],
-  ],
-  "Agile whole-body skills expose mismatch early": [
-    ["실제로 가장 치명적인 오차는 무엇일 가능성이 크나요?", "착지 타이밍, contact model 오차, actuator bandwidth 한계가 대표적입니다."],
-    ["쉬운 모션 평가는 왜 부족하죠?", "차이가 숨겨지기 쉬워 transfer method의 해상도가 떨어지기 때문입니다."],
-  ],
-  "A useful reading frame for this literature": [
-    ["왜 이 네 축으로 정리했나요?", "motion source, objective, transfer strategy, real evidence를 분리해야 문헌 비교가 왜곡되지 않기 때문입니다."],
-    ["우리 발표에서 꼭 유지해야 할 축은 무엇인가요?", "transfer strategy와 real evidence 두 축은 반드시 유지하는 편이 좋습니다."],
-  ],
-  "DeepMimic established the imitation-learning template": [
-    ["DeepMimic과 ASAP을 실험적으로 연결하려면?", "같은 tracking template 위에서 transfer module만 바꾸는 ablation이 가장 자연스럽습니다."],
-    ["DeepMimic만으로 real transfer가 어려운 이유는 뭔가요?", "hardware-specific bias를 직접 측정하거나 수정하는 단계가 없기 때문입니다."],
-  ],
-  "AMP made motion priors a first-class control signal": [
-    ["AMP prior와 ASAP을 같이 쓸 수 있나요?", "원리상 가능합니다. 더 강한 stage-1 policy 위에 transfer alignment를 덧붙이는 구조가 됩니다."],
-    ["AMP가 있으면 reward engineering 문제는 끝난 건가요?", "아니고, style prior가 좋아진 것이지 contact-accurate transfer가 자동 해결되진 않습니다."],
-  ],
-  "HumanPlus highlights real humanoid imitation and deployment": [
-    ["HumanPlus류 파이프라인에도 ASAP을 붙일 수 있나요?", "네. real deployment pipeline 위에 simulator alignment 단계를 추가하는 식으로 결합 가능합니다."],
-    ["둘의 차이를 한 문장으로 말하면?", "HumanPlus는 deployment pipeline이 강하고, ASAP은 transfer correction mechanism이 강합니다."],
-  ],
-  "Humanoid Parkour pushes dynamic task difficulty from another direction": [
-    ["Parkour 수준 과제에도 action residual이 충분할까요?", "부분적으로는 유효하지만 perception/planning mismatch까지 크면 추가 구조가 필요할 수 있습니다."],
-    ["왜 이 논문을 같이 보나요?", "agility frontier가 올라갈수록 transfer 정렬의 필요성이 커진다는 점을 보여주기 때문입니다."],
-  ],
-  "Classical transfer baselines attack the gap differently": [
-    ["SysID 대신 ASAP이 더 나은 조건은 뭔가요?", "오차가 전역 파라미터 몇 개로 설명되지 않고 상태 의존적으로 드러날 때입니다."],
-    ["Domain randomization과 병행할 수 있나요?", "네. robustness를 먼저 확보하고 measured bias alignment를 추가하는 식이 가능합니다."],
-  ],
-  "ASAP's academic position": [
-    ["이 포지셔닝은 주관적이지 않나요?", "정량 그래프는 아니지만, 어떤 축에서 논문을 읽어야 하는지 정리하는 발표용 개념도로는 유효합니다."],
-    ["ASAP을 한 분야로 묶으면 어디인가요?", "motion imitation 기반 humanoid transfer method로 두는 것이 가장 정확합니다."],
-  ],
-  "The SOTA question here is precise": [
-    ["왜 질문 정의를 이렇게 좁혀야 하죠?", "richness와 transfer quality를 섞어 비교하면 기여점이 흐려지기 때문입니다."],
-    ["이 기준이 질의응답에도 도움이 되나요?", "네. 다른 논문과의 비교 축을 정리해 과대·과소평가를 막아줍니다."],
-  ],
-  "At this point, the paper's burden is clear": [
-    ["이 burden을 만족하려면 어떤 실험이 꼭 필요하죠?", "aligned simulator fidelity, controller transfer improvement, real robot execution 세 층이 필요합니다."],
-    ["이 framing이 왜 중요하죠?", "논문이 해결하지 않는 문제를 미리 분리해 과대 해석을 막기 때문입니다."],
-  ],
-  "Stage 1 begins with human motion, not robot demonstrations": [
-    ["왜 human video가 robot demo보다 낫나요?", "표현력과 데이터 규모 면에서 유리하고 고난도 전신 동작을 더 풍부하게 확보할 수 있기 때문입니다."],
-    ["그 대신 비용은 뭔가요?", "reconstruction noise와 retargeting 난이도가 커져 cleaning이 필수입니다."],
-  ],
-  "Reference preparation is not cosmetic": [
-    ["이 figure는 paper 원본이 맞나요?", "네. 지금은 paper Figure 2를 직접 사용하고 있고, human video부터 G1 real execution까지의 retargeting 파이프라인을 그대로 보여줍니다."],
-    ["여기서 실제로 가장 많이 깨지는 단계는 어디인가요?", "reconstruction noise 정리와 robot-feasible retargeting 단계가 가장 자주 병목이 됩니다."],
-  ],
-  "The tracking policy is phase-aware and feedback-driven": [
-    ["phase 없이도 학습이 가능한가요?", "가능할 수는 있지만, 단일 motion tracking에서는 phase가 목표 문맥을 아주 싸게 제공해 안정성을 높입니다."],
-    ["feedback-driven이라는 점이 왜 중요하죠?", "real hardware에서는 open-loop playback이 곧바로 무너지기 쉽기 때문입니다."],
-  ],
-  "The reward balances fidelity and stability": [
-    ["reward 항이 많으면 tuning이 어려워지지 않나요?", "맞습니다. 그래서 learned prior가 중요하지만, humanoid tracking에서는 물리 안정 항을 여전히 완전히 뺄 수 없습니다."],
-    ["실전에서 먼저 의심할 항은 뭔가요?", "root/velocity와 contact 관련 항이 약하면 자세만 비슷하고 제어는 무너지는 경우가 많습니다."],
-  ],
-  "Stage 1 already produces a strong simulator controller": [
-    ["stage 1이 약하면 ASAP도 효과가 떨어지나요?", "네. informative한 real rollout을 얻으려면 baseline policy가 어느 정도 동작 구조를 유지해야 합니다."],
-    ["strong baseline 위에서만 의미가 있나요?", "상대적으로 그렇습니다. 이 논문은 skill discovery보다 transfer repair에 초점이 있기 때문입니다."],
-  ],
-  "Pretraining alone cannot reveal the missing hardware physics": [
-    ["센서를 더 달면 해결되나요?", "일부 관측은 늘릴 수 있지만, simulator dynamics 자체가 틀리면 관측 확장만으로는 충분하지 않을 수 있습니다."],
-    ["simulator를 더 정교하게 만들면 ASAP이 불필요해지나요?", "이론상 가능하지만, 실제로 모든 bias를 사전에 모델링하기 어려워 data-driven alignment가 여전히 유용합니다."],
-  ],
-  "Real rollouts provide the missing supervision": [
-    ["real rollout은 얼마나 많아야 하나요?", "절대량보다 mismatch를 대표하는 informative rollout이 더 중요하다는 것이 논문 메시지입니다."],
-    ["mocap이 꼭 필요한가요?", "정밀한 state pairing에는 도움이 크지만, 시스템에 따라 onboard estimation으로 일부 대체 가능성은 있습니다."],
-  ],
-  "Replay turns hardware experience into a training target": [
-    ["replay를 하려면 state 정의가 완전히 같아야 하나요?", "완전히 같을 필요는 없지만 policy-relevant state를 충분히 정렬할 수 있어야 합니다."],
-    ["offline RL과 비슷한가요?", "데이터 재사용 측면은 비슷하지만, 목적은 value learning보다 simulator correction target 생성에 더 가깝습니다."],
-  ],
-  "ASAP models the gap in action space": [
-    ["왜 next-state residual보다 action residual이 practical하죠?", "기존 controller interface를 거의 건드리지 않고 삽입할 수 있기 때문입니다."],
-    ["low-level PD가 바뀌면 residual도 다시 배워야 하나요?", "가능성이 큽니다. effective action mapping 자체가 달라지기 때문입니다."],
-  ],
-  "Why action residuals are attractive here": [
-    ["이 표현이 잘 맞는 전형적 상황은 뭔가요?", "명령은 같은데 실제 actuator/contact 응답이 다르게 나타나는 경우입니다."],
-    ["언제는 잘 안 맞을 수 있나요?", "전역 모델링 오류가 너무 크거나 morphology mismatch가 큰 경우입니다."],
-  ],
-  "The aligned simulator is the key artifact": [
-    ["aligned simulator는 어떻게 평가하죠?", "replay transition error, contact timing, 그리고 그 안에서 재학습한 policy의 transfer 성능으로 평가합니다."],
-    ["이 접근의 핵심 장점은 뭔가요?", "비싼 real data를 반복 가능한 simulator training asset으로 바꾼다는 점입니다."],
-  ],
-  "Fine-tuning is still a control problem, not just a fitting problem": [
-    ["왜 RL 재학습이 꼭 필요한가요?", "one-step fit이 좋아져도 long-horizon recovery와 timing 전략은 policy가 다시 배워야 하기 때문입니다."],
-    ["supervised fine-tuning으로 대체할 수 없나요?", "일부 보정은 가능하지만 closed-loop adaptation은 RL이 더 자연스럽습니다."],
-  ],
-  "Deployment remains operationally simple": [
-    ["배포 복잡도가 왜 중요하죠?", "실제 로봇에서는 runtime module이 늘수록 지연과 디버깅 부담이 빠르게 커집니다."],
-    ["policy 하나만 남기는 것이 재현성에도 도움이 되나요?", "직접 보장은 아니지만 시스템 단순화로 운영 안정성을 높여 줍니다."],
-  ],
-  "What the residual is likely absorbing": [
-    ["이걸 해석 가능한 파라미터로 되돌릴 수 있나요?", "일부는 가능하겠지만, 논문은 해석 가능한 식별보다 control-relevant correction을 우선합니다."],
-    ["특정 관절에 correction이 몰리면 어떻게 읽어야 하죠?", "그 관절 또는 contact chain이 주요 mismatch source일 가능성이 높다는 힌트입니다."],
-  ],
-  "Method summary": [
-    ["한 단계만 빼도 성립하나요?", "stage 1 strong pretraining이나 middle alignment가 빠지면 ASAP의 핵심 주장이 크게 약해집니다."],
-    ["우리 시스템에서 가장 먼저 구현할 부분은 뭔가요?", "real rollout replay와 paired transition 비교 파이프라인입니다."],
-  ],
-  "What convincing evidence should look like": [
-    ["왜 결과를 층별로 읽어야 하죠?", "좋아진 이유를 분해하지 않으면 training budget 증가나 confound를 배제하기 어렵기 때문입니다."],
-    ["다른 sim-to-real 논문에도 이 프레임을 쓸 수 있나요?", "네. local model fidelity와 final deployment value를 분리해 보는 데 유용합니다."],
-  ],
-  "The evaluation asks three separate questions": [
-    ["ablation이 왜 중요하죠?", "alignment 자체의 효과와 더 많은 학습의 효과를 분리해야 하기 때문입니다."],
-    ["cross-simulator를 real robot보다 먼저 보는 이유는 뭔가요?", "hardware confound를 줄인 통제된 환경에서 controller improvement를 먼저 확인할 수 있기 때문입니다."],
-  ],
-  "The first win is better transition matching": [
-    ["transition matching 개선이 실제로 의미하는 바는 뭔가요?", "같은 명령에 대해 simulator가 더 비슷한 다음 상태를 만든다는 뜻입니다."],
-    ["이 결과만 좋고 real은 안 좋아질 수도 있나요?", "그럴 수 있습니다. 그래서 closed-loop와 real robot 결과가 추가로 필요합니다."],
-  ],
-  "Then closed-loop transfer improves": [
-    ["sim-to-sim 개선이 real-world 개선을 얼마나 예측하나요?", "완전히 대체하진 않지만, aligned simulator가 policy optimization에 실질적으로 도움이 된다는 강한 중간 증거입니다."],
-    ["이 단계에서 특히 보고 싶은 failure mode는 뭔가요?", "landing 이후 drift 감소와 recovery timing 개선입니다."],
-  ],
-  "Hard motions are the right stress test": [
-    ["왜 hard motion 결과가 더 믿을 만하죠?", "transfer mismatch가 클수록 쉬운 동작보다 hard motion에서 차이가 더 분명히 드러나기 때문입니다."],
-    ["발표용 데모도 hard motion 위주가 좋나요?", "네. 차이가 가장 잘 드러나는 failure-sensitive motion을 우선하는 편이 좋습니다."],
-  ],
-  "Real-robot data is scarce enough that data efficiency matters": [
-    ["data efficiency를 더 개선하려면?", "failure-focused collection, active state coverage, iterative refresh가 다음 후보입니다."],
-    ["적은 데이터로 과적합 위험은 없나요?", "있습니다. 그래서 coverage와 held-out evaluation이 중요합니다."],
-  ],
-  "The main result is better closed-loop agility on hardware": [
-    ["여기서 가장 중요한 결과 행은 무엇인가요?", "skill preservation과 recovery quality 두 줄이 핵심입니다."],
-    ["이 결과를 바로 일반화해도 되나요?", "아직은 어렵고, motion set 다양성과 다른 embodiment 재현성이 추가로 필요합니다."],
-  ],
-  "Recovered agility is the point": [
-    ["이 데모는 어떻게 설명하면 좋죠?", "동작 시작보다 접촉 후 회복과 다음 자세 연결을 짚는 방식이 가장 효과적입니다."],
-    ["정성 결과를 과장하지 않으려면?", "정량 결과를 뒷받침하는 visual evidence로 제한해서 말하면 됩니다."],
-  ],
-  "Real-world execution is the decisive lens": [
-    ["이 figure는 paper 원본이 맞나요?", "네. 지금 슬라이드에는 paper Figure 8을 직접 사용했고, Unitree G1의 실제 forward-jump deployment 장면입니다."],
-    ["왜 decisive evidence라고 부르나요?", "aligned training의 이득이 실제 하드웨어 동작으로 이어졌는지 보여 주는 가장 직접적인 증거이기 때문입니다."],
-  ],
-  "More real data helps until the important mismatch has already been covered": [
-    ["그럼 어떤 rollout을 더 모아야 하나요?", "이미 잘 되는 구간보다 실패가 반복되는 접촉·착지 국면을 더 많이 포함한 rollout이 유효합니다."],
-    ["coverage를 실무적으로 어떻게 판단하죠?", "새 데이터 투입 후 residual 패턴과 성능이 더 변하는지로 판단할 수 있습니다."],
-  ],
-  "How the delta is used matters as much as learning it": [
-    ["noise injection과 본질 차이가 뭐죠?", "noise는 넓게 흔드는 반면 ASAP은 측정된 bias를 구조적으로 simulator transition에 반영합니다."],
-    ["online correction으로만 써도 되지 않나요?", "일부 효과는 있겠지만, policy가 보정된 물리 아래서 새 전략을 배우는 이점이 줄어듭니다."],
-  ],
-  "The residual is structured rather than uniform": [
-    ["structured residual 시각화로 무엇을 얻나요?", "어느 관절·국면이 주요 mismatch source인지 파악해 후속 모델링 방향을 잡을 수 있습니다."],
-    ["이 구조가 논문 신뢰도와 왜 연결되죠?", "좋은 숫자가 random perturbation이 아니라 실제 편향 학습에서 왔다는 간접 근거가 되기 때문입니다."],
-  ],
-  "What ASAP adds": [
-    ["novelty를 기존 용어로 표현하면?", "real-data-driven simulator alignment followed by policy re-optimization입니다."],
-    ["우리 연구에 가져갈 실용 포인트는 뭔가요?", "정책을 더 복잡하게 만들기 전에 학습 환경이 틀렸는지 먼저 점검하라는 점입니다."],
-  ],
-  "Where the method is strongest": [
-    ["best case를 어떻게 알아보죠?", "simulator에서는 잘 되는데 hardware에서 특정 dynamic motion만 반복적으로 깨지는 경우입니다."],
-    ["weaker case에서는 어떤 대안이 더 낫나요?", "전역 SysID, simulator 개선, embodiment-level redesign이 먼저일 수 있습니다."],
-  ],
-  "Limits and next comparisons": [
-    ["가장 필요한 후속 실험 하나는?", "broader motion set에서 iterative rollout refresh가 계속 이득을 주는지 보는 실험입니다."],
-    ["다른 로봇으로 옮길 때 가장 위험한 가정은 뭔가요?", "effective action bias가 여전히 residual 형태로 잘 표현된다는 가정입니다."],
-  ],
-  Resources: [
-    ["논문은 어디부터 읽는 게 좋나요?", "Figure 1과 Figure 2로 구조를 잡고 stage 2와 results를 집중해서 읽는 것이 효율적입니다."],
-    ["발표 후 팀 액션 아이템으로 연결하면?", "현재 시스템 실패 사례가 simulator mismatch인지 먼저 분해하고 replayable transition logging 가능성을 점검하는 것입니다."],
-  ],
-};
-
-const PRESENTER_SPEAK_ADD_BY_TITLE = {
-  ASAP: "이 슬라이드에서 바로 가져가실 두 문장은 명확합니다. 첫째, 문제는 Unitree G1에서 민첩한 전신 reference tracking을 실제로 살리는 것이고, 둘째, 해결 전략은 real rollout으로 simulator를 고친 뒤 그 안에서 policy를 다시 학습시키는 것입니다.",
-  "Target of transfer preservation": "이 장면에서 강조하고 싶은 것은 스타일 자체가 아니라 execution quality입니다. 즉, 공중 자세가 예쁜가보다 착지와 회복까지 포함한 closed-loop execution이 유지되는가를 보셔야 합니다.",
-  "Where the real transfer failure comes from": "시뮬레이터 안에서는 reference도 충분히 풍부하고 tracking policy도 꽤 강하게 학습됩니다. 그런데 실제 하드웨어로 가는 순간 마지막에 남는 병목이 hardware physics mismatch이고, ASAP은 정확히 그 지점을 다룹니다.",
-  "Core mechanism": "이 슬라이드에서는 figure를 기준으로 설명하겠습니다. 먼저 strong tracker를 pretrain하고, 그 정책으로 real trajectory를 모은 다음, delta action으로 simulator physics를 align하고, 마지막에 그 aligned simulator에서 policy를 fine-tune합니다.",
-  "Why transfer alignment is now a practical bottleneck": "이 파이프라인이 말하는 바는 단순합니다. reference motion과 whole-body control은 이미 많이 성숙했고, 실제 deployment에서 capability가 깨지는 마지막 interface가 점점 더 중요해졌다는 것입니다.",
-  "Agile whole-body skills expose mismatch early": "이 슬라이드의 핵심은 민첩한 동작에서는 작은 오차도 숨겨지지 않는다는 점입니다. 착지 타이밍 오차, actuator 지연, 실제 링크의 유연성, 그리고 부족한 회복 여유가 짧은 시간 안에 겹치면서 failure가 바로 드러납니다.",
-  "How to compare prior work on this problem": "관련 연구는 같은 기준으로 읽어야 비교가 정확해집니다. 여기서는 행동의 출처, policy의 목표, sim-to-real gap 처리 방식, 그리고 어떤 증거를 성공으로 인정할지를 분리해서 보겠습니다.",
-  "DeepMimic established the imitation-learning template": "이 슬라이드의 핵심은 DeepMimic이 reference-tracking RL template를 정착시켰다는 점입니다. 즉 reference motion을 물리 기반 정책으로 바꾸는 기본 구조를 세웠고, ASAP의 stage 1도 그 계보 위에 있습니다.",
-  "AMP made motion priors a first-class control signal": "AMP는 style reward를 손으로 많이 짜는 대신 motion prior를 데이터에서 배우게 했다는 점이 중요합니다. 그래서 simulator 안 behavior quality는 크게 좋아졌지만, 그 자체가 hardware transfer를 해결해 주지는 않습니다.",
-  "HumanPlus highlights real humanoid imitation and deployment": "HumanPlus는 사람 행동을 실제 humanoid behavior로 연결한 대표적인 real-world imitation 사례입니다. 이 논문이 강한 지점은 behavior source와 deployment pipeline이고, ASAP처럼 simulator alignment를 중심에 둔 논문은 아닙니다.",
-  "Humanoid Parkour pushes dynamic task difficulty from another direction": "이 논문은 human reference transfer보다 고난도 dynamic execution을 얼마나 밀어붙일 수 있는지를 보여줍니다. 여기서 중요한 것은 agility pressure가 커질수록 transfer 문제가 더 빨리, 더 크게 드러난다는 점입니다.",
-  "Classical transfer baselines attack the gap differently": "기존 transfer 방법들은 각자 다른 위치에서 오차를 줄입니다. system identification은 전역 파라미터를 맞추고, domain randomization은 넓게 버티게 만들고, state residual은 상태 예측을 보정합니다. 반면 ASAP은 effective action을 바꿔 policy가 경험하는 training dynamics 자체를 수정합니다.",
-  "What ASAP changes relative to nearby methods": "이 포지셔닝에서 ASAP은 expressive whole-body 쪽에 있으면서도 real deployment 쪽으로 더 내려와 있는 논문입니다. 즉, 새로운 motion source보다 transfer quality 자체를 학문적 기여로 내세우는 위치에 있습니다.",
-  "What counts as success for ASAP": "여기서는 SOTA를 한 숫자로 읽지 않습니다. richness는 행동 표현력, robustness는 dynamics 변화에 대한 안정성, evidence는 그 이득이 실제 hardware closed loop까지 이어졌는지를 뜻합니다.",
-  "What ASAP actually claims": "이 슬라이드는 논문의 claim boundary를 정리하는 장면입니다. 이미 강한 reference generation과 simulator tracking 위에서, ASAP이 해야 하는 일은 imitation stack 전체 교체가 아니라 마지막 transfer failure를 줄이는 것입니다.",
-  "Pipeline starts from video-to-robot retargeting": "1단계는 human video에서 출발해 body reconstruction을 거치고, 학습 가능한 형태로 정리한 뒤, 최종적으로 Unitree G1 joint space로 retargeting해 reference를 만드는 과정입니다.",
-  "Reference preparation and physical feasibility": "지금 보시는 Figure 2는 human video에서 시작한 motion이 SMPL reconstruction과 RL clean-up을 거쳐 G1 motion으로 retarget되고, 마지막에 real robot execution으로 이어지는 전체 과정을 보여줍니다. 이 슬라이드의 핵심은 reference가 robot-feasible해야 뒤의 transfer 분석도 의미가 생긴다는 점입니다.",
-  "The tracking policy is phase-aware and feedback-driven": "이 policy는 현재 robot state와 timing context를 함께 보고 action을 내는 feedback controller입니다. phase는 비슷한 pose라도 미래 의도가 다른 경우를 구분하게 해 주고, critic privilege는 training에서만 더 풍부한 simulator 정보를 쓰는 구조입니다.",
-  "The reward balances fidelity and stability": "이 reward 구성은 pose만 맞추는 것이 아니라 root motion과 velocity, contact pattern, regularization을 함께 본다는 뜻입니다. 즉 보기 좋은 imitation과 실제로 제어 가능한 imitation을 동시에 맞추는 설계라고 이해하시면 됩니다.",
-  "Stage 1 gives a usable simulator tracker": "여기서 강조할 점은 stage 1만으로도 simulator 안에서는 이미 꽤 competent한 policy가 나온다는 사실입니다. 그래서 stage 2는 skill을 새로 배우는 단계가 아니라 transfer를 보수하는 단계입니다.",
-  "Why stage 1 is still insufficient on hardware": "stage 1이 잘하는 것은 simulator 규칙 아래에서 reference-following control을 배우는 일입니다. 하지만 actuator, contact, linkage에서 생기는 robot-specific transition bias는 그 단계에서 드러나지 않기 때문에 real rollout이 필요합니다.",
-  "Real rollouts as alignment supervision": "real rollout은 state-action-next-state 수준의 직접적인 물리 증거를 줍니다. 다만 실제 데이터는 safety와 시간 제약 때문에 비싸므로, replay가 가능해야 simulator 쪽 paired comparison으로 여러 번 재사용할 수 있습니다.",
-  "Replay as paired transition supervision": "여기서 하는 일은 단순합니다. real record로 실제 다음 상태를 확보하고, 같은 state-action을 simulator에 넣어 simulated next state를 만든 뒤, 그 차이를 delta model 학습 신호로 쓰는 것입니다.",
-  "Contribution 1: learn an action-space correction": "이 슬라이드의 식은 nominal action에 state-dependent delta를 더해 corrected action을 만들고, 그 corrected action을 넣었을 때 simulator next state가 real next state에 가까워지도록 하겠다는 의미입니다.",
-  "Why action-space correction is practical": "이 비교의 핵심은 action residual이 local하고 state-dependent한 effective control bias를 담기에 적합하다는 점입니다. 반면 전역 parameter tuning은 너무 거칠고, state correction은 control-side 해석이 약해질 수 있습니다.",
-  "Contribution 2: train inside the corrected simulator": "이제 핵심 산출물을 simulator로 읽어야 합니다. residual을 freeze한 뒤 simulator 안에 넣어 두면, 이후 policy는 더 실제와 가까운 transition 아래에서 계속 RL fine-tuning을 수행할 수 있습니다.",
-  "Why RL fine-tuning is still required": "aligned simulator가 들어오면 먼저 local transition이 덜 틀리게 바뀌고, 그 결과 training state distribution 자체가 달라집니다. 그 위에서 RL은 recovery와 timing을 다시 학습하면서 controller를 재구성합니다.",
-  "Deployment remains a single-policy system": "이 슬라이드가 말하는 실용적 장점은 분명합니다. training 중에는 delta model이 필요하지만, deployment 시점에는 그 복잡성이 policy 안으로 흡수되고 실제 로봇은 single policy만 실행합니다.",
-  "What the residual is likely absorbing": "residual은 모든 관절에 균일하게 작용하는 것이 아니라, contact chain sensitivity가 큰 부위에 더 강하게 나타나는 경향이 있습니다. 그래서 이것을 arbitrary jitter보다 structured hardware bias로 해석할 근거가 생깁니다.",
-  "Two-stage method summary": "이 슬라이드는 발표 중간에 파이프라인을 다시 고정하는 역할을 합니다. pretrain, collect real rollout, align simulator, fine-tune policy라는 네 동사만 기억하셔도 논문 구조는 충분합니다.",
-  "What evidence would actually validate ASAP": "이제부터 결과는 한 방향으로 읽으시면 됩니다. local dynamics matching이 좋아졌는지, 그 simulator에서 다시 학습한 policy가 실제로 더 나아졌는지, 그리고 마지막에 real robot까지 이득이 이어졌는지를 순서대로 확인합니다.",
-  "Evaluation is designed around three practical questions": "평가는 replay, cross-simulator, real robot, ablation의 네 층으로 나뉩니다. 각각은 simulator fidelity, controller transferability, 실제 운용 가치, 그리고 기여 요소 분해라는 다른 질문에 답합니다.",
-  "Check 1: simulator transitions match hardware better": "이 결과는 replay error가 줄고 contact timing이 hardware trace에 더 가까워졌다는 뜻입니다. 동시에 residual이 generic noise가 아니라 repeatable bias pattern을 포착했다는 해석도 가능하게 합니다.",
-  "Check 2: the aligned simulator yields a better controller": "이 장면에서 보고 싶은 메시지는 simple fitting을 넘어서 controller 자체가 좋아졌다는 점입니다. aligned simulator에서 다시 학습한 policy가 changed dynamics에서도 더 잘 버틴다면 그 자체가 strong evidence가 됩니다.",
-  "Hard motions as the proper stress test": "쉬운 동작은 transfer weakness를 숨길 수 있지만, dynamic balance와 explosive motion은 contact와 timing 오류를 곧바로 드러냅니다. 그래서 ASAP의 차이는 hard motion에서 볼 때 가장 분명합니다.",
-  "Why data efficiency matters": "이 슬라이드는 real rollout이 scarce하다는 현실을 다룹니다. 너무 적으면 bias를 좁게 보고, 어느 정도 coverage에서는 meaningful gain이 나오며, critical failure mode를 덮고 나면 추가 데이터의 수익은 줄어듭니다.",
-  "Check 3: more agility survives on hardware": "핵심 결과는 두 가지입니다. ASAP 이후에는 hard motion preservation이 좋아지고, mismatch가 drift나 collapse로 번지는 정도가 줄어듭니다. 그와 동시에 deployment complexity는 single policy로 유지됩니다.",
-  "Recovered agility in real execution": "이 비디오는 style보다 recovery를 보셔야 합니다. transfer method가 가치 있으려면 contact 이후에도 motion이 살아 있고, landing 뒤 posture와 timing이 이어져야 한다는 점을 강조하는 장면입니다.",
-  "Real hardware is the final test": "지금 Figure 8은 실제 Unitree G1 forward jump deployment 장면입니다. 이 슬라이드에서의 메시지는 아주 명확하게, simulator alignment의 가치는 real-world closed-loop execution으로만 최종 판정된다는 것입니다.",
-  "Additional real data helps until coverage saturates": "초기에는 residual이 좁은 bias만 보지만, 어느 정도 coverage가 생기면 가장 큰 gain이 나옵니다. 반대로 주요 failure mode를 이미 덮고 나면 비슷한 추가 rollout의 중요성은 줄어듭니다.",
-  "How delta usage affects the gain": "이 결과는 delta를 배우는 것만으로는 충분하지 않다는 점을 보여줍니다. no delta는 simulator bias를 그대로 두고, loose robustness는 measured bias를 재현하지 못하며, aligned simulator 안 fine-tuning이 실제 gain을 만듭니다.",
-  "The residual reflects structured bias": "correction은 모든 관절에 균일하게 뿌려진 것이 아니라 joint concentration과 contact chain sensitivity를 따라 구조적으로 나타납니다. 이 점이 residual을 physics-aligned correction으로 읽게 해 줍니다.",
-  "Practical takeaway: what ASAP adds": "요약하면 기존 strong policy는 hardware-specific bias 때문에 실제에서 깨졌고, real rollout이 더 realistic한 transition을 가르쳤으며, 그 결과 final policy는 더 많은 agility를 유지한 채 단순하게 배포됩니다.",
-  "Practical takeaway: when this method is a good fit": "이 방법은 simulator policy는 competent하지만 hardware dynamics에 brittle한 경우에 특히 잘 맞습니다. task가 impact-sensitive할수록 장점이 커지고, 반대로 simulator가 전반적으로 너무 틀리거나 real rollout coverage가 너무 좁으면 한계가 분명합니다.",
-  "Limits and next comparisons": "한계도 분명합니다. 보지 못한 failure mode는 고칠 수 없고, action residual은 어디까지나 bias model입니다. 다음 단계로는 broader motion set과 iterative refresh가 필요합니다.",
-  Resources: "마지막으로 paper, project, code 링크를 남겨 두었습니다. 하지만 발표에서 남겨야 할 핵심 문장은, simulator가 틀린 physics를 가르치고 있다면 policy보다 먼저 simulator를 고쳐야 한다는 것입니다.",
-};
-
-function normalizePresenterScriptBlocks(script) {
-  if (Array.isArray(script) && script.every((item) => typeof item === "string")) {
-    if (script.length === 1) {
-      return [{ speak: script[0], detail: "" }];
-    }
-
-    const [speak, detail, ...rest] = script;
-    return [
-      {
-        speak,
-        detail: [detail, ...rest].filter(Boolean).join(" "),
-      },
-    ];
-  }
-
-  if (Array.isArray(script)) {
-    return script.map((item) =>
-      typeof item === "string" ? { speak: item, detail: "" } : { speak: item.speak || "", detail: item.detail || "" },
-    );
-  }
-
-  if (typeof script === "string") {
-    return [{ speak: script, detail: "" }];
-  }
-
-  return [];
-}
-
-
-function enhancePresenterNotes(slide, notes) {
-  const resolvedTitle = PRESENTER_TITLE_ALIASES[slide.title] || slide.title;
-  const scriptBlocks = normalizePresenterScriptBlocks(notes.scriptKo);
-  const supplementalSpeak =
-    PRESENTER_SPEAK_ADD_BY_TITLE[slide.title] || PRESENTER_SPEAK_ADD_BY_TITLE[resolvedTitle] || "";
-  const extraDetails = PRESENTER_DETAIL_BY_TITLE[slide.title] || PRESENTER_DETAIL_BY_TITLE[resolvedTitle] || "";
-
-  if (!scriptBlocks.length) {
-    return {
-      ...notes,
-      scriptKo: extraDetails || supplementalSpeak ? [{ speak: supplementalSpeak, detail: extraDetails }] : [],
-      qaKo: [...(Array.isArray(notes.qaKo) ? notes.qaKo : []), ...(PRESENTER_EXTRA_QA_BY_TITLE[slide.title] || PRESENTER_EXTRA_QA_BY_TITLE[resolvedTitle] || [])],
-    };
-  }
-
-  const enrichedBlocks = scriptBlocks.map((block) => ({
-    speak: block.speak,
-    detail: block.detail,
-  }));
-
-  if (supplementalSpeak) {
-    enrichedBlocks.push({
-      speak: supplementalSpeak,
-      detail: extraDetails,
-    });
-  } else {
-    const lastBlock = enrichedBlocks[enrichedBlocks.length - 1];
-    lastBlock.detail = [lastBlock.detail, extraDetails].filter(Boolean).join("\n\n");
-  }
-
-  return {
-    ...notes,
-    scriptKo: enrichedBlocks,
-    qaKo: [...(Array.isArray(notes.qaKo) ? notes.qaKo : []), ...(PRESENTER_EXTRA_QA_BY_TITLE[slide.title] || PRESENTER_EXTRA_QA_BY_TITLE[resolvedTitle] || [])],
-  };
-}
-
-window.ASAP_DECK.slides = window.ASAP_DECK.slides.map((slide) => {
-  const resolvedTitle = PRESENTER_TITLE_ALIASES[slide.title] || slide.title;
-  const notes = PRESENTER_NOTES_BY_TITLE[slide.title] || PRESENTER_NOTES_BY_TITLE[resolvedTitle] || {};
-  return {
-    ...slide,
-    ...enhancePresenterNotes(slide, notes),
-  };
-});
