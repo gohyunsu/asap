@@ -10,6 +10,7 @@ const presenterSection = document.getElementById("presenterSection");
 const presenterSlideTitle = document.getElementById("presenterSlideTitle");
 const presenterSlideSubtitle = document.getElementById("presenterSlideSubtitle");
 const presenterNotes = document.getElementById("presenterNotes");
+const presenterQa = document.getElementById("presenterQa");
 const presenterNextTitle = document.getElementById("presenterNextTitle");
 const presenterPrev = document.getElementById("presenterPrev");
 const presenterNext = document.getElementById("presenterNext");
@@ -60,6 +61,31 @@ function noteValueFor(index) {
   return defaultKoreanScript(deckData.slides[index]);
 }
 
+function qaValueFor(index) {
+  const qaItems = deckData.slides[index]?.qaKo;
+  return Array.isArray(qaItems) ? qaItems : [];
+}
+
+function renderQa(index) {
+  const qaItems = qaValueFor(index);
+
+  if (!qaItems.length) {
+    presenterQa.innerHTML = `<p class="presenter-empty">예상 질문이 아직 없습니다.</p>`;
+    return;
+  }
+
+  presenterQa.innerHTML = qaItems
+    .map(
+      ([question, answer]) => `
+        <article class="presenter-qa-item">
+          <p class="presenter-qa-question">Q. ${question}</p>
+          <p class="presenter-qa-answer">A. ${answer}</p>
+        </article>
+      `,
+    )
+    .join("");
+}
+
 function renderPresenter() {
   const slide = currentSlide();
   const section = sectionByKey[slide.section];
@@ -71,6 +97,7 @@ function renderPresenter() {
   presenterSlideSubtitle.textContent = slide.subtitle || "";
   presenterSlideSubtitle.hidden = !slide.subtitle;
   presenterNotes.value = noteValueFor(currentIndex);
+  renderQa(currentIndex);
   presenterNextTitle.textContent = nextSlide ? nextSlide.title : "마지막 슬라이드";
 }
 

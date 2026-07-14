@@ -163,15 +163,6 @@ img {
   cursor: pointer;
 }
 
-#openPresenter {
-  width: auto;
-  min-width: 44px;
-  padding: 0 12px;
-  font-size: 0.86rem;
-  font-weight: 900;
-  letter-spacing: 0.04em;
-}
-
 .controls button:hover {
   background: var(--soft);
 }
@@ -1076,6 +1067,41 @@ body.presenter-view {
   margin-top: 8px;
   font-size: 1.08rem;
   line-height: 1.5;
+}
+
+.presenter-qa {
+  margin-top: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.presenter-qa-item {
+  padding: 14px 16px;
+  border: 1px solid rgba(23, 23, 23, 0.09);
+  border-radius: 12px;
+  background: #fcfcfb;
+}
+
+.presenter-qa-question,
+.presenter-qa-answer,
+.presenter-empty {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.58;
+}
+
+.presenter-qa-question {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.presenter-qa-answer {
+  margin-top: 8px;
+  color: #4a4a4a;
+}
+
+.presenter-empty {
+  color: var(--muted);
 }
 
 .presenter-footer {
