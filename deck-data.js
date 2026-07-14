@@ -95,6 +95,7 @@ window.ASAP_DECK = {
       chapter: "Task",
       title: "ASAP",
       subtitle: "Aligning simulation and real-world physics for learning agile humanoid whole-body skills",
+      byline: "Hyunsu Go · Visual Computing Lab",
       lead: "ASAP targets a narrow but important failure mode: a motion-tracking policy already looks competent in simulation, but loses agility after deployment because the effective hardware physics is different.",
       points: [
         `<strong>Setting.</strong> The robot is Unitree G1, and the task is agile whole-body reference tracking rather than generic locomotion.`,

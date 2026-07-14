@@ -269,6 +269,14 @@ img {
   font-weight: 760;
 }
 
+.slide-byline {
+  margin: 2px 0 0;
+  color: #5a5a56;
+  font-size: clamp(1.08rem, 1.14vw, 1.22rem);
+  line-height: 1.5;
+  font-weight: 680;
+}
+
 .slide-body {
   min-height: 0;
   overflow: visible;

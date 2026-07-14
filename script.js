@@ -396,6 +396,7 @@ function renderSlide(slide, index) {
           ${slide.role ? `<p class="kicker">${slide.role}</p>` : ""}
           <h1 class="slide-title">${slide.title}</h1>
           ${slide.subtitle ? `<p class="slide-subtitle">${slide.subtitle}</p>` : ""}
+          ${slide.byline ? `<p class="slide-byline">${slide.byline}</p>` : ""}
         </header>
         <div class="slide-body">
           <div class="layout ${layout}">
