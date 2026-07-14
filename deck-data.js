@@ -519,7 +519,7 @@ window.ASAP_DECK = {
         `Each RL step initializes the simulator at the measured real state <strong>sʳ_t</strong>.`,
         `The reward minimizes next-state discrepancy to <strong>sʳ_{t+1}</strong> while regularizing action magnitude.`,
         `The delta policy itself is trained with <strong>PPO</strong>, not by one-step supervised fitting alone.`,
-        `This choice keeps the correction at the <strong>same control interface</strong> used later by the motion-tracking policy.`,
+        `This choice preserves the <strong>same control interface</strong> used later by the motion-tracking policy.`,
       ],
       ...note(
         "이 슬라이드가 ASAP의 핵심 수식입니다. simulator를 real state에서 시작시키고, 실제로 기록된 action aʳ_t에 state-dependent corrective action Δa_t를 더합니다. 그리고 그렇게 만든 simulator next state가 실제 next state sʳ_{t+1}에 가까워지도록 πΔ를 학습합니다. 즉 residual dynamics를 next state 쪽에서 직접 보정하는 것이 아니라, simulator가 받는 effective action을 보정하는 방식입니다.",
@@ -673,14 +673,14 @@ window.ASAP_DECK = {
       section: "evidence",
       chapter: "Simulation",
       title: "Closed-Loop Motion Imitation Results",
-      subtitle: "The next question is whether the aligned simulator produces a better controller, not just better replay curves.",
+      subtitle: "The next question is whether the aligned simulator produces a better controller rather than only better replay curves.",
       visual: paperImage(
         "assets/asap_figure5_difficulty.png",
         "Figure 6 from the paper: qualitative comparisons across easy, medium, and hard motions.",
       ),
       points: [
         `Closed-loop evaluation covers IsaacGym→IsaacSim and IsaacGym→Genesis across <strong>easy, medium, and hard</strong> motions.`,
-        `ASAP is the only method that keeps <strong>100% success</strong> across all difficulty levels in both test simulators.`,
+        `ASAP is the only method that maintains <strong>100% success</strong> across all difficulty levels in both test simulators.`,
         `The hard split is the most informative because it exposes cumulative contact and recovery errors immediately.`,
         `For example, on <strong>medium Genesis</strong>, success improves from <strong>94.3%</strong> to <strong>100%</strong> and E_g-mpjpe improves from <strong>169</strong> to <strong>126</strong>.`,
       ],
@@ -820,11 +820,11 @@ window.ASAP_DECK = {
       points: [
         `The dataset-size sweep spans <strong>43, 430, 4300, and 43000</strong> samples.`,
         `Scaling the dataset from <strong>4300</strong> to <strong>43000</strong> samples reduces closed-loop error by only <strong>0.65%</strong>.`,
-        `Open-loop replay keeps improving up to <strong>1.5 s</strong>, but the best closed-loop result is at <strong>1.0 s</strong>.`,
+        `Open-loop replay continues improving up to <strong>1.5 s</strong>, but the best closed-loop result is at <strong>1.0 s</strong>.`,
         `The best action-norm weight is around <strong>0.1</strong>; larger values over-constrain the residual.`,
       ],
       ...note(
-        "Figure 10은 delta action model을 어떻게 학습해야 하는지에 대한 가장 practical한 가이드를 줍니다. 첫째, dataset size를 4300에서 43000으로 늘려도 closed-loop 성능은 0.65%만 좋아집니다. 즉 무조건 데이터 양을 키우는 것보다 informative coverage를 확보하는 것이 더 중요합니다. 둘째, open-loop 기준으로는 1.5초 horizon이 가장 좋지만, closed-loop에서는 1.0초가 sweet spot입니다. 셋째, action norm weight는 0.1 근처가 가장 좋고, 너무 크면 residual이 과하게 제약됩니다.",
+        "Figure 10은 delta action model을 어떻게 학습해야 하는지에 대한 가장 practical한 가이드를 줍니다. 첫째, dataset size를 4300에서 43000으로 늘려도 closed-loop 성능은 0.65%만 좋아집니다. 즉 무조건 데이터 양을 키우는 것보다 informative coverage를 확보하는 것이 더 중요합니다. 둘째, open-loop 기준으로는 1.5초 horizon이 가장 좋지만, closed-loop에서는 1.0초가 최적점입니다. 셋째, action norm weight는 0.1 근처가 가장 좋고, 너무 크면 residual이 과하게 제약됩니다.",
         "action norm은 residual action의 크기를 억제하는 regularization입니다. 너무 약하면 correction이 불안정해지고, 너무 강하면 필요한 bias correction까지 막아버릴 수 있습니다.",
         [
           qa("왜 더 많은 데이터가 거의 도움이 안 되나요?", "주요 mismatch mode를 이미 커버한 뒤에는 비슷한 rollout이 반복되기 때문입니다. 이 논문은 quantity보다 coverage가 중요하다는 쪽에 가깝습니다."),
@@ -857,7 +857,7 @@ window.ASAP_DECK = {
       section: "evidence",
       chapter: "Analysis",
       title: "Comparison with Random Action Noise",
-      subtitle: "The authors explicitly test whether the gain is just generic robustness from perturbing actions.",
+      subtitle: "The authors explicitly test whether the gain can be explained by generic robustness from action perturbation.",
       visual: paperImage(
         "assets/asap_figure11_noise.png",
         "Figure 12 from the paper: random action noise versus ASAP fine-tuning.",
@@ -865,7 +865,7 @@ window.ASAP_DECK = {
       points: [
         `The noise sweep studies <strong>β ∈ [0.025, 0.4]</strong>, with the useful range concentrated in <strong>[0.025, 0.2]</strong>.`,
         `The best action-noise policy still reaches about <strong>173 MPJPE</strong>, whereas ASAP reaches <strong>126 MPJPE</strong>.`,
-        `The gap suggests delta action is not just robustness injection; it is <strong>structured correction</strong>.`,
+        `The gap suggests that delta action provides <strong>structured correction</strong> beyond generic robustness injection.`,
       ],
       ...note(
         "Figure 12는 매우 중요한 반박 실험입니다. 혹시 ASAP의 gain이 residual modeling이 아니라 단순히 noisy action으로 policy를 더 robust하게 만든 효과일 수 있지 않느냐는 질문에 답합니다. 결과는 noise도 어느 정도 도움이 되지만, best noise가 173 MPJPE인 반면 ASAP은 126 MPJPE로 훨씬 낮다는 것입니다. 따라서 delta action은 uniform robustness trick보다 더 구조적인 correction을 담고 있다고 보는 편이 타당합니다.",
