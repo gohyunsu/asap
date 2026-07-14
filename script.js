@@ -141,8 +141,16 @@ function renderVisual(visual) {
       ? `<a href="${visual.source}" target="_blank" rel="noreferrer">${visual.sourceLabel || "source"}</a>`
       : "";
     const caption = [visual.caption, source].filter(Boolean).join(" · ");
+    const figureClasses = [
+      "visual",
+      visual.cover ? "cover" : "",
+      visual.className || "",
+      visual.src && visual.src.includes("asap_table") ? "table-figure" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
     return `
-      <figure class="visual ${visual.cover ? "cover" : ""}">
+      <figure class="${figureClasses}">
         <img src="${visual.src}" alt="${visual.alt || visual.caption || ""}" loading="lazy" />
         ${caption ? `<figcaption class="caption">${caption}</figcaption>` : ""}
       </figure>

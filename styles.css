@@ -423,6 +423,29 @@ img {
   background: #f7f7f5;
 }
 
+.visual.table-figure {
+  display: grid;
+  gap: 0;
+  justify-items: center;
+  align-items: start;
+  padding: 8px;
+  background: #fff;
+}
+
+.visual.table-figure img,
+.visual.table-figure.cover img {
+  width: auto;
+  max-width: 100%;
+  max-height: calc(100vh - var(--topbar-h) - 300px);
+  object-fit: contain;
+  background: #fff;
+}
+
+.visual.table-figure .caption {
+  width: 100%;
+  padding: 8px 10px;
+}
+
 .visual video {
   width: 100%;
   max-height: 500px;
@@ -559,12 +582,14 @@ img {
 
 .table-wrap {
   overflow: auto;
+  max-height: calc(100vh - var(--topbar-h) - 300px);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 560px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 th,
