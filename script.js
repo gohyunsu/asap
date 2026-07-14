@@ -103,6 +103,28 @@ function renderVisual(visual) {
     `;
   }
 
+  if (visual.type === "video") {
+    const source = visual.source
+      ? `<a href="${visual.source}" target="_blank" rel="noreferrer">${visual.sourceLabel || "source"}</a>`
+      : "";
+    const caption = [visual.caption, source].filter(Boolean).join(" · ");
+    return `
+      <figure class="visual ${visual.cover ? "cover" : ""}">
+        <video
+          src="${visual.src}"
+          ${visual.poster ? `poster="${visual.poster}"` : ""}
+          ${visual.autoplay === false ? "" : "autoplay"}
+          ${visual.muted === false ? "" : "muted"}
+          ${visual.loop === false ? "" : "loop"}
+          ${visual.controls ? "controls" : ""}
+          playsinline
+          preload="metadata"
+        ></video>
+        ${caption ? `<figcaption class="caption">${caption}</figcaption>` : ""}
+      </figure>
+    `;
+  }
+
   if (visual.type === "cards") {
     return `
       <div class="cards" style="--cols:${visual.cols || 2}">
@@ -311,6 +333,10 @@ function renderSlide(slide, index) {
       (slide.blocks && slide.blocks.length),
   );
   const layout = slide.layout || (visual && hasCopy ? "split" : "wide");
+  const slideClasses = ["slide"];
+  if (slide.variant) {
+    slideClasses.push(`slide-${slide.variant}`);
+  }
   const content = `
     ${slide.lead ? `<p class="lead">${slide.lead}</p>` : ""}
     ${renderTextList(slide.points)}
@@ -318,7 +344,7 @@ function renderSlide(slide, index) {
   `;
 
   return `
-    <section class="slide" id="slide-${index + 1}" data-section="${slide.section}" data-chapter="${slide.chapter}">
+    <section class="${slideClasses.join(" ")}" id="slide-${index + 1}" data-section="${slide.section}" data-chapter="${slide.chapter}">
       <div class="slide-inner">
         <header class="slide-head">
           ${slide.role ? `<p class="kicker">${slide.role}</p>` : ""}

@@ -64,6 +64,21 @@ window.ASAP_DECK = {
     {
       section: "setup",
       chapter: "Problem",
+      variant: "hero",
+      title: "What the paper is trying to preserve",
+      subtitle: "The target is not just motion style in simulation, but stable, expressive, closed-loop execution.",
+      visual: {
+        type: "video",
+        src: "https://agile.human2humanoid.com/static/videos/Hero-ASAP-Video-Website-Hero-16-9-202502031028-1080P.mp4",
+        cover: true,
+        caption: "Official ASAP project video.",
+        source: PROJECT_URL,
+        sourceLabel: "project",
+      },
+    },
+    {
+      section: "setup",
+      chapter: "Problem",
       title: "The bottleneck is no longer motion generation",
       subtitle: "The harder question is whether expressive motion survives closed-loop execution on the real robot.",
       points: [
@@ -273,6 +288,20 @@ window.ASAP_DECK = {
           ["Richness", "How expressive is the behavior being attempted?"],
           ["Robustness", "How stable is the policy under changed dynamics?"],
           ["Evidence", "Is the gain visible in closed-loop hardware behavior rather than only in simulation?"],
+        ],
+      },
+    },
+    {
+      section: "landscape",
+      chapter: "Positioning",
+      title: "At this point, the paper's burden is clear",
+      subtitle: "ASAP only matters if it improves the last step of a pipeline that is already strong everywhere else.",
+      visual: {
+        type: "compare",
+        rows: [
+          ["Already strong", "Reference generation", "The field already knows how to obtain rich motions and train convincing simulator trackers."],
+          ["Still weak", "Transfer under hidden physics", "Agility still collapses when closed-loop hardware dynamics deviate from the simulator."],
+          ["ASAP's job", "Repair the training physics", "The method has to improve transfer without replacing the whole imitation stack."],
         ],
       },
     },
@@ -509,6 +538,21 @@ window.ASAP_DECK = {
         ],
       },
     },
+    {
+      section: "evidence",
+      chapter: "Design",
+      title: "What convincing evidence should look like",
+      subtitle: "The claim is only persuasive if the story lines up from local dynamics to final robot behavior.",
+      visual: {
+        type: "cards",
+        cols: 3,
+        items: [
+          ["First", "Replay should show that the corrected simulator is actually closer to measured hardware transitions."],
+          ["Then", "Fine-tuning in that simulator should produce a controller that transfers better across dynamics."],
+          ["Finally", "The real robot should preserve more of the intended agile behavior in closed loop."],
+        ],
+      },
+    },
 
     {
       section: "evidence",
@@ -601,6 +645,21 @@ window.ASAP_DECK = {
           ["Recovery quality", "Mismatch compounds into drift or collapse", "The controller recovers better because training saw more realistic failures."],
           ["Deployment complexity", "Single policy", "Still a single policy."],
         ],
+      },
+    },
+    {
+      section: "evidence",
+      chapter: "Results",
+      variant: "hero",
+      title: "Recovered agility is the point",
+      subtitle: "A transfer method earns its value when the robot keeps the dynamic behavior after contact, landing, and recovery.",
+      visual: {
+        type: "video",
+        src: "https://agile.human2humanoid.com/static/videos/ASAP-Motion-CR7_level1-1080P.mp4",
+        cover: true,
+        caption: "Official ASAP motion example from the project page.",
+        source: PROJECT_URL,
+        sourceLabel: "project",
       },
     },
     {
