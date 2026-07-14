@@ -408,16 +408,12 @@ window.ASAP_DECK = {
       title: "Reward Terms for Pretraining",
       subtitle: "The pretraining reward trades off pose fidelity, contact quality, and control regularity.",
       layout: "wide",
-      visual: {
-        type: "table",
-        headers: ["Group", "Terms", "Weights"],
-        rows: [
-          ["Penalty", "DoF position / velocity / torque / termination", "-10.0 / -5.0 / -5.0 / -200.0"],
-          ["Regularization", "Torques / action rate / feet orientation / feet heading / slippage", "-1e-6 / -0.5 / -2.0 / -0.1 / -1.0"],
-          ["Task reward", "Body position / VR 3-point / body position (feet)", "1.0 / 1.6 / 2.1"],
-          ["Task reward", "Body rotation / angular velocity / body velocity / DoF position / DoF velocity", "0.5 / 0.5 / 0.5 / 0.75 / 0.5"],
-        ],
-      },
+      visual: paperImage(
+        "assets/asap_table1_pretraining_rewards.png",
+        "Table I from the paper: reward terms for pretraining.",
+        "Table I from the paper: reward terms for pretraining.",
+        { cover: true },
+      ),
       points: [
         `The largest task-side weights are on <strong>VR 3-point</strong> and <strong>feet body position</strong>, showing that whole-body anchoring and foot placement matter strongly.`,
         `A large termination penalty of <strong>-200</strong> prevents the policy from exploiting unstable motions that look good briefly and fail immediately.`,
@@ -543,16 +539,12 @@ window.ASAP_DECK = {
       title: "Reward Terms for Residual Action Training",
       subtitle: "The delta policy is trained to correct transitions, so its reward is lighter on actuation and explicit about action magnitude.",
       layout: "wide",
-      visual: {
-        type: "table",
-        headers: ["Group", "Terms", "Weights"],
-        rows: [
-          ["Penalty", "DoF position / velocity / torque / termination", "-10.0 / -5.0 / -0.1 / -200.0"],
-          ["Regularization", "Action rate / action norm", "-0.01 / -0.2"],
-          ["Task reward", "Body position / VR 3-point / feet position", "1.0 / 1.0 / 1.0"],
-          ["Task reward", "Body rotation / angular velocity / body velocity / DoF position / DoF velocity", "0.5 / 0.5 / 0.5 / 0.5 / 0.5"],
-        ],
-      },
+      visual: paperImage(
+        "assets/asap_table2_delta_rewards.png",
+        "Table II from the paper: reward terms for delta action learning.",
+        "Table II from the paper: reward terms for delta action learning.",
+        { cover: true },
+      ),
       points: [
         `Compared with pretraining, the torque penalty is much smaller (<strong>-0.1</strong> instead of <strong>-5.0</strong>) because πΔ is not the whole controller.`,
         `An explicit <strong>action-norm penalty</strong> is added so the residual remains corrective rather than dominating the base action.`,
@@ -652,20 +644,12 @@ window.ASAP_DECK = {
       title: "Open-Loop Replay Results (Table III)",
       subtitle: "The longest replay horizon shows the clearest separation between methods, so 1.0 s is the most informative row.",
       layout: "wide",
-      visual: {
-        type: "table",
-        headers: ["Length", "Method", "IsaacSim E_g / E_m", "Genesis E_g / E_m"],
-        rows: [
-          ["0.25 s", "OpenLoop", "19.5 / 15.1", "19.8 / 15.3"],
-          ["0.25 s", "ASAP", "19.9 / 15.6", "19.0 / 14.9"],
-          ["0.5 s", "OpenLoop", "33.3 / 23.2", "33.1 / 23.0"],
-          ["0.5 s", "ASAP", "26.8 / 19.2", "25.9 / 18.4"],
-          ["1.0 s", "OpenLoop", "80.8 / 43.5", "82.5 / 44.5"],
-          ["1.0 s", "SysID", "77.6 / 41.5", "76.5 / 41.6"],
-          ["1.0 s", "DeltaDynamics", "68.1 / 21.5", "50.2 / 17.2"],
-          ["1.0 s", "ASAP", "37.9 / 22.9", "36.9 / 22.6"],
-        ],
-      },
+      visual: paperImage(
+        "assets/asap_table3_open_loop.png",
+        "Table III from the paper: open-loop performance comparison across simulators and motion lengths.",
+        "Table III from the paper: open-loop performance comparison across simulators and motion lengths.",
+        { cover: true },
+      ),
       points: [
         `At <strong>1.0 s replay</strong>, ASAP cuts IsaacSim global error from <strong>80.8</strong> to <strong>37.9</strong>.`,
         `On Genesis, it cuts global error from <strong>82.5</strong> to <strong>36.9</strong> and root-velocity error from <strong>11.4</strong> to <strong>5.10</strong>.`,
@@ -708,17 +692,12 @@ window.ASAP_DECK = {
       title: "Representative Rows from Table IV",
       subtitle: "Representative rows show that the gain grows with task difficulty, especially in Genesis.",
       layout: "wide",
-      visual: {
-        type: "table",
-        headers: ["Setting", "Vanilla Succ / E_g / E_m", "ASAP Succ / E_g / E_m", "Reading"],
-        rows: [
-          ["Easy / IsaacSim", "100 / 107 / 45.4", "100 / 106 / 44.3", "The task is already easy, so the gain is modest."],
-          ["Easy / Genesis", "100 / 140 / 70.1", "100 / 125 / 73.5", "Global tracking improves even when success is already saturated."],
-          ["Medium / Genesis", "94.3 / 169 / 72.0", "100 / 126 / 71.2", "Success and global tracking both improve materially."],
-          ["Hard / IsaacSim", "100 / 148 / 51.6", "100 / 129 / 56.5", "Global error decreases under the hardest simulator dynamics."],
-          ["Hard / Genesis", "82.9 / 175 / 80.7", "100 / 129 / 77.0", "This is the clearest closed-loop transfer gain in the table."],
-        ],
-      },
+      visual: paperImage(
+        "assets/asap_table4_closed_loop.png",
+        "Table IV from the paper: closed-loop motion imitation evaluation across simulators.",
+        "Table IV from the paper: closed-loop motion imitation evaluation across simulators.",
+        { cover: true },
+      ),
       points: [
         `In hard Genesis motions, ASAP improves <strong>E_g-mpjpe 175 → 129</strong> and restores success from <strong>82.9% → 100%</strong>.`,
         `The practical pattern is that gains are small when the task is already easy, but become substantial once simulator mismatch starts to accumulate.`,
@@ -806,16 +785,12 @@ window.ASAP_DECK = {
       title: "Real-World Metrics (Table V)",
       subtitle: "The real-robot comparison reports one in-distribution motion and one out-of-distribution motion with the same metric set.",
       layout: "wide",
-      visual: {
-        type: "table",
-        headers: ["Motion", "Method", "E_g-mpjpe", "E_mpjpe", "E_acc", "E_vel"],
-        rows: [
-          ["Kick", "Vanilla", "61.2", "43.5", "2.96", "2.91"],
-          ["Kick", "ASAP", "50.2", "40.1", "2.46", "2.70"],
-          ["LeBron (OOD)", "Vanilla", "159", "55.3", "3.43", "6.43"],
-          ["LeBron (OOD)", "ASAP", "112", "47.5", "2.84", "5.94"],
-        ],
-      },
+      visual: paperImage(
+        "assets/asap_table5_real_world.png",
+        "Table V from the paper: real-world closed-loop performance with and without ASAP fine-tuning.",
+        "Table V from the paper: real-world closed-loop performance with and without ASAP fine-tuning.",
+        { cover: true },
+      ),
       points: [
         `The gain is not confined to one metric: <strong>global tracking, local pose, acceleration, and velocity</strong> all improve after ASAP fine-tuning.`,
         `The larger absolute gain on the OOD motion is consistent with the claim that the residual captures reusable lower-body dynamics bias.`,
