@@ -130,7 +130,7 @@ window.ASAP_DECK = {
     {
       section: "setup",
       chapter: "Method",
-      title: "Contributions and Evaluation Scope",
+      title: "Paper Scope and Contributions",
       subtitle: "ASAP is presented as a transfer method on top of an already competent motion-tracking stack.",
       visual: {
         type: "cards",
@@ -180,6 +180,57 @@ window.ASAP_DECK = {
         [qa("왜 어려운 동작일수록 transfer 문제가 더 잘 보이나요?", "동적 동작은 회복 여유가 적어서 simulator bias가 누적되기 전에 바로 실패로 드러나기 때문입니다.")],
       ),
     },
+    {
+      section: "setup",
+      chapter: "Method",
+      role: "Overview",
+      title: "ASAP Framework Overview",
+      subtitle: "The paper separates stage-1 skill acquisition from stage-2 simulator alignment and final policy adaptation.",
+      visual: paperImage(
+        "assets/asap_figure2_pipeline.png",
+        "Figure 2 from the paper: ASAP overview with pretraining, delta-action training, fine-tuning, and deployment.",
+      ),
+      points: [
+        `Stage 1 pretrains a motion-tracking policy from retargeted human-video references.`,
+        `Stage 2 collects real trajectories <strong>D^r = {s_0^r, a_0^r, ..., s_T^r, a_T^r}</strong>, trains a delta action model, and freezes it inside the simulator.`,
+        `Policy fine-tuning is performed with <strong>PPO</strong> in the aligned simulator, while deployment still uses <strong>one policy</strong>.`,
+        `The paper names the four blocks explicitly: <strong>pre-training and real trajectory collection</strong>, <strong>delta action model training</strong>, <strong>policy fine-tuning</strong>, and <strong>real-world deployment</strong>.`,
+      ],
+      ...note(
+        "Figure 2를 그대로 따라가면 논문 구조가 가장 자연스럽게 정리됩니다. 먼저 human-video 기반 reference를 만들고, 그 reference를 따라가는 tracking policy를 시뮬레이터에서 학습합니다. 그 다음 실제 로봇에서 rollout을 모아서 delta action model을 학습하고, 그 model을 시뮬레이터 안에 고정한 뒤 tracking policy를 다시 fine-tune합니다. 마지막 배포 시점에는 delta model이 아니라 fine-tuned policy 하나만 실제 로봇에 올라갑니다.",
+        "이 논문에서 stage 1은 behavior acquisition 단계이고, stage 2는 physics alignment 단계입니다. 따라서 두 단계를 섞지 않고 순서대로 보는 것이 발표와 이해 모두에 유리합니다.",
+        [qa("왜 deployment 때 delta action model을 함께 쓰지 않나요?", "논문의 의도는 runtime patch보다 training-time simulator correction입니다. delta model은 policy가 더 나은 dynamics 아래서 다시 배우게 만들고, 최종 배포는 single-policy로 단순하게 유지합니다.")],
+      ),
+    },
+    {
+      section: "setup",
+      chapter: "Method",
+      role: "Overview",
+      title: "Technical Roadmap of the Presentation",
+      subtitle: "From this point, each block serves one role in the paper's technical argument.",
+      visual: {
+        type: "cards",
+        cols: 2,
+        items: [
+          ["Landscape", "Use related work and baselines to isolate the paper's novelty: simulator alignment for agile motion tracking."],
+          ["Stage 1", "Establish that the retargeting pipeline and PPO tracking policy are already competent before stage 2 begins."],
+          ["Stage 2", "Show how real rollouts train the residual action model and how the aligned simulator is used for policy fine-tuning."],
+          ["Evidence", "Read results in the order replay matching, closed-loop transfer, hardware deployment, and ablation-based interpretation."],
+        ],
+      },
+      points: [
+        `The remaining slides are easiest to track if we keep one question per block: <strong>where the novelty sits</strong>, <strong>what stage 1 already solves</strong>, <strong>how stage 2 changes the simulator</strong>, and <strong>whether the evidence supports that claim</strong>.`,
+        `This ordering matters because ASAP is convincing only if <strong>stage-1 competence</strong> and <strong>stage-2 transfer repair</strong> are kept separate throughout the talk.`,
+      ],
+      ...note(
+        "여기서부터는 발표를 네 단계로 따라가면 됩니다. 먼저 related work와 baseline으로 이 논문의 novelty가 motion source나 policy family가 아니라 simulator alignment라는 점을 고정합니다. 그 다음 stage 1에서 reference pipeline과 tracking policy가 이미 충분히 competent하다는 사실을 확인하고, stage 2에서 real rollout으로 residual action model과 aligned simulator를 만드는 과정을 봅니다. 마지막으로 evidence는 replay, closed-loop transfer, real robot, ablation 순서로 읽겠습니다.",
+        "이 슬라이드는 남은 발표의 읽는 법을 정리하는 역할입니다. 이후 각 슬라이드는 novelty를 좁히는지, stage 1을 세우는지, stage 2를 설명하는지, 아니면 증거를 제시하는지 중 하나의 역할만 하도록 해석하면 흐름이 훨씬 단순해집니다.",
+        [
+          qa("related work를 먼저 길게 보는 이유는 무엇인가요?", "ASAP의 기여를 과장하지 않으려면 무엇이 기존 tracking stack이고 무엇이 새 transfer mechanism인지 먼저 분리해야 하기 때문입니다."),
+        ],
+      ),
+    },
+
     {
       section: "landscape",
       chapter: "Field",
@@ -328,28 +379,6 @@ window.ASAP_DECK = {
     {
       section: "pretrain",
       chapter: "Reference",
-      role: "Overview",
-      title: "ASAP Framework Overview",
-      subtitle: "The rest of the deck follows the exact stage order shown in the paper.",
-      visual: paperImage(
-        "assets/asap_figure2_pipeline.png",
-        "Figure 2 from the paper: ASAP overview with pretraining, delta-action training, fine-tuning, and deployment.",
-      ),
-      points: [
-        `Stage 1 pretrains a motion-tracking policy from retargeted human-video references.`,
-        `Stage 2 collects real trajectories <strong>D^r = {s_0^r, a_0^r, ..., s_T^r, a_T^r}</strong>, trains a delta action model, and freezes it inside the simulator.`,
-        `Policy fine-tuning is performed with <strong>PPO</strong> in the aligned simulator, while deployment still uses <strong>one policy</strong>.`,
-        `The paper names the four blocks explicitly: <strong>pre-training and real trajectory collection</strong>, <strong>delta action model training</strong>, <strong>policy fine-tuning</strong>, and <strong>real-world deployment</strong>.`,
-      ],
-      ...note(
-        "Figure 2를 그대로 따라가면 논문 구조가 가장 자연스럽게 정리됩니다. 먼저 human-video 기반 reference를 만들고, 그 reference를 따라가는 tracking policy를 시뮬레이터에서 학습합니다. 그 다음 실제 로봇에서 rollout을 모아서 delta action model을 학습하고, 그 model을 시뮬레이터 안에 고정한 뒤 tracking policy를 다시 fine-tune합니다. 마지막 배포 시점에는 delta model이 아니라 fine-tuned policy 하나만 실제 로봇에 올라갑니다.",
-        "이 논문에서 stage 1은 behavior acquisition 단계이고, stage 2는 physics alignment 단계입니다. 따라서 두 단계를 섞지 않고 순서대로 보는 것이 발표와 이해 모두에 유리합니다.",
-        [qa("왜 deployment 때 delta action model을 함께 쓰지 않나요?", "논문의 의도는 runtime patch보다 training-time simulator correction입니다. delta model은 policy가 더 나은 dynamics 아래서 다시 배우게 만들고, 최종 배포는 single-policy로 단순하게 유지합니다.")],
-      ),
-    },
-    {
-      section: "pretrain",
-      chapter: "Reference",
       title: "Human-Video Retargeting Pipeline",
       subtitle: "The reference motion is reconstructed, cleaned, and retargeted before control learning begins.",
       visual: paperImage(
@@ -477,6 +506,36 @@ window.ASAP_DECK = {
     {
       section: "alignment",
       chapter: "Data",
+      role: "Overview",
+      title: "Transition from Pretraining to Simulator Alignment",
+      subtitle: "Stage 2 begins only after the tracking stack is strong enough to expose transfer bias rather than skill failure.",
+      visual: {
+        type: "cards",
+        cols: 2,
+        items: [
+          ["What stage 1 already gives", "A reference pipeline, a PPO tracking policy, and real-hardware rollouts that are informative rather than catastrophic."],
+          ["What still fails", "Landing quality, recovery timing, and lower-body coordination still degrade because simulator transitions are biased."],
+          ["What data stage 2 uses", "Measured state-action-next-state tuples collected from the pretrained policy on the robot."],
+          ["What the next slides explain", "Residual action learning, the aligned simulator, and why final PPO fine-tuning is still required."],
+        ],
+      },
+      points: [
+        `At this point, the paper has established a competent simulator-side tracker; the unresolved question is now <strong>transfer repair</strong> rather than <strong>skill discovery</strong>.`,
+        `The next three slides should therefore be read as a single chain: <strong>real rollout dataset → residual action objective → aligned-simulator fine-tuning</strong>.`,
+      ],
+      ...note(
+        "여기까지가 stage 1의 역할입니다. 즉 reference를 만들고, PPO tracking policy를 학습하고, 그 policy가 실제 로봇에서도 rollout을 모을 정도로는 동작한다는 점까지 확보했습니다. 이제부터의 질문은 새 스킬을 찾는 것이 아니라, 이미 있는 tracking policy가 왜 실제에서 landing quality와 recovery timing을 잃는지, 그리고 그 bias를 어떻게 줄일 것인지입니다. 그래서 다음 세 슬라이드는 real rollout dataset, residual action objective, aligned simulator fine-tuning이라는 하나의 체인으로 보시면 됩니다.",
+        "이 전환이 중요합니다. stage 1이 약하면 stage 2의 이득을 해석할 수 없고, 반대로 stage 1이 충분히 competent하면 이후 개선은 simulator physics alignment의 효과로 비교적 명확하게 읽을 수 있습니다.",
+        [
+          qa("왜 stage 2를 별도 단계로 두는 것이 해석에 유리한가요?", "stage 1 competence와 stage 2 transfer repair를 분리해야, 성능 향상이 reference quality 때문인지 simulator alignment 때문인지 구분할 수 있기 때문입니다."),
+          qa("여기서 가장 중요한 전제는 무엇인가요?", "pretrained policy가 실제에서 완전히 실패하지 않고 informative rollout을 제공할 정도로는 이미 동작한다는 점입니다."),
+        ],
+      ),
+    },
+
+    {
+      section: "alignment",
+      chapter: "Data",
       title: "Real-World Rollout Dataset",
       subtitle: "Stage 2 starts from measured state-action-next-state tuples collected with the pretrained policy on the robot.",
       layout: "wide",
@@ -590,8 +649,8 @@ window.ASAP_DECK = {
       section: "evidence",
       chapter: "Protocol",
       role: "Overview",
-      title: "Experimental Questions and Metrics",
-      subtitle: "The paper organizes evidence around six questions; the main talk needs the first three plus the supporting analyses.",
+      title: "Evaluation Roadmap and Metrics",
+      subtitle: "The evidence is presented in the same order as the technical claim: replay, controller, hardware, then analysis.",
       layout: "wide",
       visual: {
         type: "table",
@@ -828,6 +887,34 @@ window.ASAP_DECK = {
     {
       section: "evidence",
       chapter: "Analysis",
+      role: "Overview",
+      title: "Interpretive Questions for the Analysis Section",
+      subtitle: "After the main simulator and hardware results, the remaining task is to explain when ASAP works and what the residual captures.",
+      visual: {
+        type: "cards",
+        cols: 3,
+        items: [
+          ["Data efficiency", "How much real data is actually needed before replay and transfer gains saturate?"],
+          ["Training strategy", "Why is PPO fine-tuning stronger than training-free correction once a delta model exists?"],
+          ["Residual structure", "Does the learned correction behave like structured lower-body bias or generic action noise?"],
+        ],
+      },
+      points: [
+        `The analysis section is not additional evidence of capability; it explains <strong>why the main results from Table III to Table V look the way they do</strong>.`,
+        `The next four slides answer three practical questions: <strong>how much data is needed</strong>, <strong>how the delta model should be used</strong>, and <strong>what physical bias it appears to encode</strong>.`,
+      ],
+      ...note(
+        "여기까지가 메인 결과입니다. 이제부터의 분석 파트는 성능이 더 좋다는 사실을 한 번 더 반복하는 것이 아니라, 왜 그런 결과가 나왔는지와 실제로 method를 사용할 때 어떤 선택이 중요한지를 설명합니다. 구체적으로는 real data가 얼마나 필요한지, learned delta model이 있더라도 왜 PPO fine-tuning이 필요한지, 그리고 residual이 generic robustness가 아니라 어떤 구조적 lower-body bias를 담고 있는지를 보겠습니다.",
+        "따라서 다음 슬라이드들은 각각 독립적인 ablation이 아니라, ASAP의 메커니즘을 해석하는 보조 증거로 읽는 편이 맞습니다. 발표에서는 이 구분을 분명히 해 두는 것이 흐름상 중요합니다.",
+        [
+          qa("analysis 파트를 메인 결과 뒤에 두는 이유는 무엇인가요?", "먼저 method가 실제로 효과가 있는지 확인한 뒤, 그다음에 sample efficiency와 mechanism interpretation을 보는 것이 논리적으로 더 명확하기 때문입니다."),
+        ],
+      ),
+    },
+
+    {
+      section: "evidence",
+      chapter: "Analysis",
       title: "Sensitivity to Dataset Size, Horizon, and Action Norm",
       subtitle: "The delta model is sensitive to what data it sees and how far it is asked to reason.",
       visual: paperImage(
@@ -891,8 +978,8 @@ window.ASAP_DECK = {
       ),
     },
     {
-      section: "takeaways",
-      chapter: "Interpretation",
+      section: "evidence",
+      chapter: "Analysis",
       title: "Joint-Wise Structure of the Learned Residuals",
       subtitle: "The learned correction is concentrated, asymmetric, and physically interpretable rather than uniform across the body.",
       visual: paperImage(
