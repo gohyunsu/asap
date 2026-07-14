@@ -107,7 +107,7 @@ window.ASAP_DECK = {
       ),
       ...note(
         "이 발표는 ASAP 논문을 다룹니다. 핵심 문제는 시뮬레이터에서는 이미 꽤 잘 되는 전신 모션 추적 정책이 실제 로봇에 올리면 민첩성과 안정성을 잃는다는 점입니다. 그래서 이 논문은 새 모션을 만드는 대신, 실제 롤아웃을 이용해 시뮬레이터 물리를 더 실제에 가깝게 맞춘 뒤 그 안에서 정책을 다시 학습시키는 데 초점을 둡니다.",
-        "여기서 whole-body skill은 단순 보행이 아니라 점프, 한 발 지지, 킥처럼 상체와 하체가 함께 개입하는 동작을 뜻합니다. 이런 동작은 접지, 착지, 회복이 모두 얽혀 있어서 물리 오차가 빨리 드러납니다.\n\nsim-to-real은 시뮬레이터에서 학습한 정책을 실제 하드웨어로 옮기는 과정입니다. 이 논문은 그 과정에서 남는 마지막 병목을 dynamics mismatch, 즉 시뮬레이터와 실제 하드웨어의 물리 차이로 봅니다.",
+        "whole-body skill은 단순 보행이 아니라 점프, 한 발 지지, 킥처럼 상체와 하체가 함께 개입하는 동작을 뜻합니다. 이런 동작은 접지, 착지, 회복이 모두 얽혀 있어서 물리 오차가 빨리 드러납니다.\n\nsim-to-real은 시뮬레이터에서 학습한 정책을 실제 하드웨어로 옮기는 과정입니다. 이 논문은 그 과정에서 남는 마지막 병목을 dynamics mismatch, 즉 시뮬레이터와 실제 하드웨어의 물리 차이로 봅니다.",
         [
           qa("이 논문의 한 줄 요약은 무엇인가요?", "실제 롤아웃으로 배운 delta action model을 시뮬레이터에 넣고, 그 정렬된 시뮬레이터 안에서 정책을 다시 fine-tune하는 방법입니다."),
           qa("왜 locomotion 논문이 아니라 whole-body skill 논문으로 읽어야 하나요?", "이 논문은 단순 주행보다 훨씬 동적인 reference tracking을 다루기 때문에, 접촉과 타이밍 오차가 transfer 병목으로 더 강하게 드러납니다."),
@@ -122,7 +122,7 @@ window.ASAP_DECK = {
       subtitle: "The paper targets closed-loop preservation of dynamic motion rather than visually plausible playback in simulation.",
       visual: projectVideo(ASAP_HERO_VIDEO_URL, "Official ASAP project video.", { cover: true }),
       ...note(
-        "이 장면에서는 동작의 화려함보다 닫힌 루프에서의 유지 능력을 보시면 됩니다. 즉 점프나 회전 이후에도 자세가 이어지고, 착지 후에 바로 무너지지 않으며, 다음 상태로 자연스럽게 넘어가는지가 핵심입니다. ASAP이 지키고 싶은 것은 바로 이런 closed-loop execution입니다.",
+        "여기서 봐야 하는 것은 동작의 화려함보다 닫힌 루프에서의 유지 능력입니다. 점프나 회전 이후에도 자세가 이어지고, 착지 후에 바로 무너지지 않으며, 다음 상태로 자연스럽게 넘어가는지가 핵심입니다. ASAP이 지키고 싶은 것은 바로 이런 closed-loop execution입니다.",
         "closed-loop control은 현재 상태를 계속 읽으면서 그때그때 action을 갱신하는 제어를 말합니다. 따라서 단순히 한 프레임이 예뻐 보이는 것보다, 접촉 이후에도 제어가 이어지는지가 훨씬 중요합니다.",
         [qa("이 영상에서 무엇을 가장 중점적으로 봐야 하나요?", "점프나 착지 직후의 회복 구간입니다. transfer가 약하면 바로 그 구간에서 timing과 lower-body coordination이 무너집니다.")],
       ),
@@ -147,7 +147,7 @@ window.ASAP_DECK = {
         `Its third contribution is a <strong>three-scenario evaluation</strong>: IsaacGym→IsaacSim, IsaacGym→Genesis, and IsaacGym→Real.`,
       ],
       ...note(
-        "이 슬라이드는 논문이 어디까지를 자기 기여로 주장하는지 정리하는 역할입니다. 저자들은 reference generation 자체를 새로 제안하는 것이 아니라, 이미 있는 stage 1 motion tracking stack 위에 simulator alignment 단계를 추가합니다. 그리고 그 결과를 IsaacGym에서 IsaacSim으로, IsaacGym에서 Genesis로, 그리고 실제 G1 로봇으로 옮기는 세 가지 전이 시나리오에서 모두 검증했다는 점을 contribution으로 내세웁니다.",
+        "논문의 기여를 이 범위로 한정해서 읽는 것이 중요합니다. 저자들은 reference generation 자체를 새로 제안하는 것이 아니라, 이미 있는 stage 1 motion tracking stack 위에 simulator alignment 단계를 추가합니다. 그리고 그 결과를 IsaacGym에서 IsaacSim으로, IsaacGym에서 Genesis로, 그리고 실제 G1 로봇으로 옮기는 세 가지 전이 시나리오에서 모두 검증했다는 점을 contribution으로 내세웁니다.",
         "이 논문을 읽을 때 중요한 것은 claim boundary입니다. 즉 이것은 새로운 humanoid architecture나 새로운 motion source 논문이 아니라, transfer mechanism 논문이라는 점을 먼저 고정해야 합니다. 발표에서는 이 경계를 분명히 해야 뒤의 결과 표를 과대해석하지 않게 됩니다.",
         [
           qa("이 논문은 새로운 policy architecture를 제안하나요?", "핵심은 architecture보다 transfer pipeline입니다. policy는 PPO 기반 motion-tracking policy이고, 새로 추가되는 것은 delta action model과 aligned simulator입니다."),
@@ -175,7 +175,7 @@ window.ASAP_DECK = {
         `Agile motions expose the gap early because <strong>one wrong contact or delayed recovery immediately propagates</strong>.`,
       ],
       ...note(
-        "왜 이 논문이 굳이 agile whole-body skill을 전면에 세우는지 여기서 이해하시면 됩니다. 이런 동작은 공중 구간, 착지, 한 발 지지처럼 오차가 바로 다음 상태로 증폭되는 구간을 포함합니다. 그래서 시뮬레이터의 contact, actuation, compliance 모델이 조금만 틀려도 closed-loop behavior가 빠르게 어긋납니다.",
+        "agile whole-body skill을 전면에 세우는 이유는 여기서 분명해집니다. 이런 동작은 공중 구간, 착지, 한 발 지지처럼 오차가 바로 다음 상태로 증폭되는 구간을 포함합니다. 그래서 시뮬레이터의 contact, actuation, compliance 모델이 조금만 틀려도 closed-loop behavior가 빠르게 어긋납니다.",
         "dynamics mismatch는 단순히 mass parameter 하나가 틀린다는 뜻이 아니라, actuator delay, contact impulse, structural asymmetry처럼 controller가 체감하는 유효 물리가 다르다는 뜻입니다. 이 논문은 그 차이를 action interface에서 모델링하려고 합니다.",
         [qa("왜 어려운 동작일수록 transfer 문제가 더 잘 보이나요?", "동적 동작은 회복 여유가 적어서 simulator bias가 누적되기 전에 바로 실패로 드러나기 때문입니다.")],
       ),
@@ -223,9 +223,10 @@ window.ASAP_DECK = {
       points: [
         `DeepMimic established the <strong>reference-tracking RL template</strong> that ASAP inherits in stage 1.`,
         `Its scope is simulator-side physics imitation, not real-hardware simulator alignment.`,
+        `In the ASAP reading, DeepMimic explains <strong>why stage-1 tracking is plausible</strong>, but not why it later fails on hardware.`,
       ],
       ...note(
-        "DeepMimic를 여기서 짚는 이유는 ASAP의 stage 1이 어떤 전통 위에 서 있는지 보여주기 위해서입니다. reference motion을 두고 RL policy가 그것을 physics simulation 안에서 안정적으로 따라가게 만든다는 기본 틀은 DeepMimic 계열에서 정립되었습니다. 다만 DeepMimic 자체는 real-hardware transfer를 직접 푸는 논문은 아닙니다.",
+        "DeepMimic는 ASAP의 stage 1이 어떤 전통 위에 서 있는지를 가장 잘 보여줍니다. reference motion을 두고 RL policy가 그것을 physics simulation 안에서 안정적으로 따라가게 만든다는 기본 틀은 DeepMimic 계열에서 정립되었습니다. 다만 DeepMimic 자체는 real-hardware transfer를 직접 푸는 논문은 아닙니다.",
         "reference-tracking reinforcement learning은 정답 action을 supervised하게 주는 대신, reference와의 tracking reward를 최대화하도록 policy를 학습하는 방식입니다. 그래서 contact와 balance를 policy가 스스로 배우게 된다는 장점이 있습니다.",
         [qa("ASAP의 novelty가 DeepMimic과 가장 다르게 갈리는 지점은 어디인가요?", "reference-following stage 1이 아니라, 그 이후 simulator와 hardware 사이의 transfer gap을 real rollout으로 줄이는 stage 2입니다.")],
       ),
@@ -269,6 +270,7 @@ window.ASAP_DECK = {
       points: [
         `HumanPlus is relevant because it demonstrates <strong>rich human behavior reaching a real humanoid</strong>.`,
         `Compared with ASAP, its emphasis is more on behavior source, teleoperation or shadowing style interface, and deployment story than on residual simulator correction.`,
+        `It is therefore a stronger reference for <strong>human-to-humanoid behavior transfer</strong> than for simulator-physics alignment.`,
       ],
       ...note(
         "HumanPlus는 사람이 만든 동작이 실제 humanoid까지 이어질 수 있다는 점을 강하게 보여주는 계열입니다. 그래서 behavior source와 real deployment라는 관점에서는 ASAP와 같은 무대에 놓을 수 있습니다. 하지만 핵심 기술적 질문은 다릅니다. HumanPlus는 사람 행동을 로봇 동작으로 연결하는 인터페이스와 imitation story가 중심이고, ASAP은 이미 있는 tracking policy의 transfer failure를 무엇으로 줄일 것이냐가 중심입니다.",
@@ -312,9 +314,10 @@ window.ASAP_DECK = {
         `<strong>Vanilla.</strong> No simulator correction; train in IsaacGym and test in IsaacSim, Genesis, or the real robot.`,
         `<strong>SysID.</strong> Search base CoM shift <strong>(c_x, c_y, c_z)</strong>, base-mass ratio <strong>k_m</strong>, and 23-DoF PD gain ratios <strong>(k_p^i, k_d^i)</strong> that replay real trajectories best.`,
         `<strong>DeltaDynamics versus ASAP.</strong> One corrects next-state prediction; the other corrects the action interface the policy already uses for PPO fine-tuning.`,
+        `<strong>Operational distinction.</strong> DeltaDynamics improves forward prediction, whereas ASAP is designed to improve the controller's training dynamics before deployment.`,
       ],
       ...note(
-        "이 슬라이드는 논문 안의 baseline을 정확히 이해하는 데 중요합니다. Vanilla는 아무 보정 없이 policy를 그대로 옮기는 기준선입니다. SysID는 CoM shift와 base mass ratio, 그리고 23개 관절의 PD gain ratio를 real rollout replay 기준으로 탐색합니다. DeltaDynamics는 residual dynamics model로 다음 상태를 보정하려 하고, ASAP은 residual action policy로 effective command 자체를 보정합니다.",
+        "논문 안의 baseline을 정확히 이해하는 것이 중요합니다. Vanilla는 아무 보정 없이 policy를 그대로 옮기는 기준선입니다. SysID는 CoM shift와 base mass ratio, 그리고 23개 관절의 PD gain ratio를 real rollout replay 기준으로 탐색합니다. DeltaDynamics는 residual dynamics model로 다음 상태를 보정하려 하고, ASAP은 residual action policy로 effective command 자체를 보정합니다.",
         "SysID는 simulator parameter를 맞추는 전통적인 접근입니다. DeltaDynamics는 state transition model 쪽 보정이고, delta action은 control interface 쪽 보정입니다. ASAP의 주장은 후자가 policy adaptation과 더 잘 결합된다는 것입니다.",
         [
           qa("왜 action-space correction이 더 실용적이라고 보나요?", "최종 policy가 원래도 action을 통해 simulator와 상호작용하기 때문에, bias를 같은 interface에서 보정하는 편이 controller adaptation과 연결되기 쉽기 때문입니다."),
@@ -336,9 +339,10 @@ window.ASAP_DECK = {
         `Stage 1 pretrains a motion-tracking policy from retargeted human-video references.`,
         `Stage 2 collects real trajectories <strong>D^r = {s_0^r, a_0^r, ..., s_T^r, a_T^r}</strong>, trains a delta action model, and freezes it inside the simulator.`,
         `Policy fine-tuning is performed with <strong>PPO</strong> in the aligned simulator, while deployment still uses <strong>one policy</strong>.`,
+        `The paper names the four blocks explicitly: <strong>pre-training and real trajectory collection</strong>, <strong>delta action model training</strong>, <strong>policy fine-tuning</strong>, and <strong>real-world deployment</strong>.`,
       ],
       ...note(
-        "이제부터는 Figure 2를 따라가시면 됩니다. 먼저 human-video 기반 reference를 만들고, 그 reference를 따라가는 tracking policy를 시뮬레이터에서 학습합니다. 그 다음 실제 로봇에서 rollout을 모아서 delta action model을 학습하고, 그 model을 시뮬레이터 안에 고정한 뒤 tracking policy를 다시 fine-tune합니다. 마지막 배포 시점에는 delta model이 아니라 fine-tuned policy 하나만 실제 로봇에 올라갑니다.",
+        "Figure 2를 그대로 따라가면 논문 구조가 가장 자연스럽게 정리됩니다. 먼저 human-video 기반 reference를 만들고, 그 reference를 따라가는 tracking policy를 시뮬레이터에서 학습합니다. 그 다음 실제 로봇에서 rollout을 모아서 delta action model을 학습하고, 그 model을 시뮬레이터 안에 고정한 뒤 tracking policy를 다시 fine-tune합니다. 마지막 배포 시점에는 delta model이 아니라 fine-tuned policy 하나만 실제 로봇에 올라갑니다.",
         "이 논문에서 stage 1은 behavior acquisition 단계이고, stage 2는 physics alignment 단계입니다. 따라서 두 단계를 섞지 않고 순서대로 보는 것이 발표와 이해 모두에 유리합니다.",
         [qa("왜 deployment 때 delta action model을 함께 쓰지 않나요?", "논문의 의도는 runtime patch보다 training-time simulator correction입니다. delta model은 policy가 더 나은 dynamics 아래서 다시 배우게 만들고, 최종 배포는 single-policy로 단순하게 유지합니다.")],
       ),
