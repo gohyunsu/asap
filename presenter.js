@@ -3,12 +3,13 @@ const sectionByKey = Object.fromEntries(deckData.sections.map((section) => [sect
 const syncChannel =
   typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("asap-presenter-sync") : null;
 const syncSourceId = `presenter-${Math.random().toString(36).slice(2, 10)}`;
-const notesStorageKey = "asap-ko-script-v1";
+const notesStorageKey = "asap-ko-extra-memo-v1";
 
 const presenterCounter = document.getElementById("presenterCounter");
 const presenterSection = document.getElementById("presenterSection");
 const presenterSlideTitle = document.getElementById("presenterSlideTitle");
 const presenterSlideSubtitle = document.getElementById("presenterSlideSubtitle");
+const presenterScript = document.getElementById("presenterScript");
 const presenterNotes = document.getElementById("presenterNotes");
 const presenterQa = document.getElementById("presenterQa");
 const presenterNextTitle = document.getElementById("presenterNextTitle");
@@ -40,16 +41,41 @@ function noteKey(index) {
   return `slide-${index + 1}`;
 }
 
-function defaultKoreanScript(slide) {
-  if (Array.isArray(slide?.scriptKo)) {
-    return slide.scriptKo.join("\n\n");
+function normalizeScriptBlocks(slide) {
+  const script = slide?.scriptKo;
+
+  if (Array.isArray(script) && script.every((item) => typeof item === "string")) {
+    if (script.length === 1) {
+      return [{ speak: script[0], detail: "" }];
+    }
+
+    const [speak, detail, ...rest] = script;
+    return [
+      {
+        speak,
+        detail: [detail, ...rest].filter(Boolean).join(" "),
+      },
+    ];
   }
 
-  if (typeof slide?.scriptKo === "string") {
-    return slide.scriptKo;
+  if (Array.isArray(script)) {
+    return script.map((item) => {
+      if (typeof item === "string") {
+        return { speak: item, detail: "" };
+      }
+
+      return {
+        speak: item.speak || "",
+        detail: item.detail || "",
+      };
+    });
   }
 
-  return "";
+  if (typeof script === "string") {
+    return [{ speak: script, detail: "" }];
+  }
+
+  return [];
 }
 
 function noteValueFor(index) {
@@ -57,8 +83,7 @@ function noteValueFor(index) {
   if (typeof stored === "string") {
     return stored;
   }
-
-  return defaultKoreanScript(deckData.slides[index]);
+  return "";
 }
 
 function qaValueFor(index) {
@@ -86,6 +111,26 @@ function renderQa(index) {
     .join("");
 }
 
+function renderScript(index) {
+  const scriptBlocks = normalizeScriptBlocks(deckData.slides[index]);
+
+  if (!scriptBlocks.length) {
+    presenterScript.innerHTML = `<p class="presenter-empty">스크립트가 아직 없습니다.</p>`;
+    return;
+  }
+
+  presenterScript.innerHTML = scriptBlocks
+    .map(
+      (block) => `
+        <article class="presenter-script-item">
+          ${block.speak ? `<p class="presenter-script-speak"><strong>${block.speak}</strong></p>` : ""}
+          ${block.detail ? `<p class="presenter-script-detail">${block.detail}</p>` : ""}
+        </article>
+      `,
+    )
+    .join("");
+}
+
 function renderPresenter() {
   const slide = currentSlide();
   const section = sectionByKey[slide.section];
@@ -96,6 +141,7 @@ function renderPresenter() {
   presenterSlideTitle.textContent = slide.title;
   presenterSlideSubtitle.textContent = slide.subtitle || "";
   presenterSlideSubtitle.hidden = !slide.subtitle;
+  renderScript(currentIndex);
   presenterNotes.value = noteValueFor(currentIndex);
   renderQa(currentIndex);
   presenterNextTitle.textContent = nextSlide ? nextSlide.title : "마지막 슬라이드";
