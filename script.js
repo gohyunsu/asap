@@ -6,7 +6,11 @@ const counter = document.getElementById("slideCounter");
 const progress = document.getElementById("progressBar");
 const prevButton = document.getElementById("prevSlide");
 const nextButton = document.getElementById("nextSlide");
+const presenterButton = document.getElementById("openPresenter");
 const topbar = document.querySelector(".topbar");
+const syncChannel =
+  typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("asap-presenter-sync") : null;
+const syncSourceId = `deck-${Math.random().toString(36).slice(2, 10)}`;
 
 const sectionByKey = Object.fromEntries(deckData.sections.map((section) => [section.key, section]));
 let slides = [];
@@ -14,6 +18,48 @@ let currentIndex = 0;
 
 function currentSlide() {
   return deckData.slides[currentIndex];
+}
+
+function buildSyncPayload() {
+  return {
+    type: "state",
+    sourceId: syncSourceId,
+    index: currentIndex,
+    slideCount: deckData.slides.length,
+    title: currentSlide()?.title || "",
+  };
+}
+
+function broadcastState() {
+  syncChannel?.postMessage(buildSyncPayload());
+}
+
+function handleSyncMessage(message) {
+  if (!message || message.sourceId === syncSourceId) {
+    return;
+  }
+
+  if (message.type === "go-to-slide" && Number.isInteger(message.index)) {
+    goToSlide(message.index);
+    return;
+  }
+
+  if (message.type === "request-state") {
+    broadcastState();
+  }
+}
+
+function openPresenterWindow() {
+  const presenter = window.open(
+    "presenter.html",
+    "asap-presenter",
+    "popup=yes,width=760,height=900,resizable=yes,scrollbars=yes",
+  );
+
+  if (presenter) {
+    presenter.focus();
+    window.setTimeout(() => broadcastState(), 150);
+  }
 }
 
 function syncTopbarHeight() {
@@ -424,6 +470,7 @@ function updateState(index) {
     button.classList.toggle("active", button.dataset.chapter === slide.chapter);
   });
   syncTopbarHeight();
+  broadcastState();
 }
 
 function goToSlide(index, updateHash = true) {
@@ -447,6 +494,7 @@ function syncFromHash() {
 }
 
 function wireInteractions() {
+  presenterButton?.addEventListener("click", openPresenterWindow);
   prevButton.addEventListener("click", () => goToSlide(currentIndex - 1));
   nextButton.addEventListener("click", () => goToSlide(currentIndex + 1));
 
@@ -516,9 +564,15 @@ function wireInteractions() {
       event.preventDefault();
       currentScrollContainer()?.scrollTo({ top: currentScrollContainer().scrollHeight, behavior: "smooth" });
     }
+
+    if (event.key.toLowerCase() === "k") {
+      event.preventDefault();
+      openPresenterWindow();
+    }
   });
 
   window.addEventListener("resize", syncTopbarHeight);
+  syncChannel?.addEventListener("message", (event) => handleSyncMessage(event.data));
 }
 
 renderDeck();

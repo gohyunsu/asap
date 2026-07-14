@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ASAP Presenter Notes</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="presenter-view">
+    <main class="presenter-shell">
+      <header class="presenter-header">
+        <div>
+          <p class="presenter-kicker">Korean Script</p>
+          <h1 id="presenterTitle">ASAP Presenter Notes</h1>
+        </div>
+        <div class="presenter-status">
+          <span id="presenterCounter">1 / 1</span>
+          <button type="button" id="openDeckLink">Deck</button>
+        </div>
+      </header>
+
+      <section class="presenter-card presenter-meta">
+        <p id="presenterSection" class="presenter-section">Section</p>
+        <h2 id="presenterSlideTitle" class="presenter-slide-title">Slide title</h2>
+        <p id="presenterSlideSubtitle" class="presenter-slide-subtitle"></p>
+      </section>
+
+      <section class="presenter-card">
+        <div class="presenter-row">
+          <h3>한국어 스크립트</h3>
+          <span class="presenter-hint">브라우저에 자동 저장</span>
+        </div>
+        <textarea
+          id="presenterNotes"
+          class="presenter-notes"
+          placeholder="이 슬라이드의 한국어 발표 스크립트를 입력하세요."
+        ></textarea>
+      </section>
+
+      <section class="presenter-card presenter-preview">
+        <div>
+          <p class="presenter-preview-label">다음 슬라이드</p>
+          <strong id="presenterNextTitle">—</strong>
+        </div>
+      </section>
+
+      <footer class="presenter-footer">
+        <button type="button" id="presenterPrev">이전</button>
+        <button type="button" id="presenterNext">다음</button>
+      </footer>
+    </main>
+
+    <script src="deck-data.js"></script>
+    <script src="presenter.js"></script>
+  </body>
+</html>
