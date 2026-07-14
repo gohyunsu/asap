@@ -803,6 +803,35 @@ window.ASAP_DECK = {
     {
       section: "evidence",
       chapter: "Real World",
+      title: "Real-World Metrics (Table V)",
+      subtitle: "The real-robot comparison reports one in-distribution motion and one out-of-distribution motion with the same metric set.",
+      layout: "wide",
+      visual: {
+        type: "table",
+        headers: ["Motion", "Method", "E_g-mpjpe", "E_mpjpe", "E_acc", "E_vel"],
+        rows: [
+          ["Kick", "Vanilla", "61.2", "43.5", "2.96", "2.91"],
+          ["Kick", "ASAP", "50.2", "40.1", "2.46", "2.70"],
+          ["LeBron (OOD)", "Vanilla", "159", "55.3", "3.43", "6.43"],
+          ["LeBron (OOD)", "ASAP", "112", "47.5", "2.84", "5.94"],
+        ],
+      },
+      points: [
+        `The gain is not confined to one metric: <strong>global tracking, local pose, acceleration, and velocity</strong> all improve after ASAP fine-tuning.`,
+        `The larger absolute gain on the OOD motion is consistent with the claim that the residual captures reusable lower-body dynamics bias.`,
+      ],
+      ...note(
+        "Table V를 표로만 다시 읽어 보면 논문의 real-world claim이 더 명확해집니다. Kick에서는 네 지표가 모두 조금씩 좋아지고, LeBron Silencer 같은 out-of-distribution motion에서는 개선 폭이 훨씬 큽니다. 특히 E_g-mpjpe가 159에서 112로 크게 줄어들고, E_vel도 6.43에서 5.94로 줄어들기 때문에 단순 pose matching뿐 아니라 동작의 전역 진행과 속도 프로파일도 더 안정화됐다고 볼 수 있습니다.",
+        "in-distribution motion은 delta model이 본 motion family와 가까운 경우이고, out-of-distribution motion은 그렇지 않은 경우입니다. 발표에서는 OOD 개선이 residual의 재사용 가능성을 보여주는 가장 중요한 실험 중 하나라고 짚으면 충분합니다.",
+        [
+          qa("왜 OOD 결과가 이 논문에서 특히 중요하나요?", "특정 trajectory patch가 아니라 실제 hardware bias를 어느 정도 모델링했다는 해석이 가능해지기 때문입니다."),
+          qa("real-world에서 어떤 지표를 가장 우선해서 봐야 하나요?", "E_g-mpjpe와 E_vel을 먼저 보고, 그 다음 local pose quality를 E_mpjpe로 확인하는 순서가 가장 실용적입니다."),
+        ],
+      ),
+    },
+    {
+      section: "evidence",
+      chapter: "Real World",
       title: "Forward-Jump Demonstration on Unitree G1",
       subtitle: "The paper also demonstrates a forward leap of more than 1 m on the 1.35 m Unitree G1.",
       variant: "hero",
@@ -816,7 +845,7 @@ window.ASAP_DECK = {
         `The demonstrated jump exceeds <strong>1 m forward</strong> on the <strong>1.35 m</strong> Unitree G1 and illustrates the dynamic regime targeted by the paper.`,
       ],
       ...note(
-        "Figure 9는 정량 테이블이라기보다 capability demonstration입니다. 1.35미터 키의 G1이 1미터가 넘는 forward leap를 수행한다는 것은, 이 논문이 겨냥하는 동작 영역이 얼마나 공격적인지를 잘 보여줍니다. 다시 말해 ASAP은 쉬운 locomotion transfer가 아니라, conservative policy로는 쉽게 무너지는 high-impulse skill transfer를 목표로 합니다.",
+        "Figure 9는 capability demonstration으로 읽는 편이 가장 적절합니다. 1.35미터 키의 G1이 1미터가 넘는 forward leap를 수행한다는 것은, 이 논문이 겨냥하는 동작 영역이 얼마나 공격적인지를 잘 보여줍니다. 다시 말해 ASAP은 쉬운 locomotion transfer가 아니라, conservative policy로는 쉽게 무너지는 high-impulse skill transfer를 목표로 합니다.",
         "capability demonstration은 benchmark와 다르게, method가 어떤 수준의 behavior regime까지 도달했는지를 보여주는 자료입니다. 발표에서는 정량 결과와 분리해서 보는 편이 좋습니다.",
         [qa("이 장면이 실험 결과에서 어떤 의미를 갖나요?", "정량 평가를 보완하는 capability evidence입니다. 논문이 정말 보존하려는 agility regime가 어떤 것인지 직관적으로 보여줍니다.")],
       ),
@@ -838,7 +867,7 @@ window.ASAP_DECK = {
       ],
       ...note(
         "Figure 10은 delta action model을 어떻게 학습해야 하는지에 대한 가장 practical한 가이드를 줍니다. 첫째, dataset size를 4300에서 43000으로 늘려도 closed-loop 성능은 0.65%만 좋아집니다. 즉 무조건 데이터 양을 키우는 것보다 informative coverage를 확보하는 것이 더 중요합니다. 둘째, open-loop 기준으로는 1.5초 horizon이 가장 좋지만, closed-loop에서는 1.0초가 최적점입니다. 셋째, action norm weight는 0.1 근처가 가장 좋고, 너무 크면 residual이 과하게 제약됩니다.",
-        "action norm은 residual action의 크기를 억제하는 regularization입니다. 너무 약하면 correction이 불안정해지고, 너무 강하면 필요한 bias correction까지 막아버릴 수 있습니다.",
+        "action norm은 residual action의 크기를 억제하는 regularization입니다. 너무 약하면 correction이 불안정해지고, 너무 강하면 필요한 bias correction까지 막아버릴 수 있습니다. dataset size 실험은 결국 quantity보다 coverage가 중요하다는 메시지로 읽는 편이 가장 실용적입니다.",
         [
           qa("왜 더 많은 데이터가 거의 도움이 안 되나요?", "주요 mismatch mode를 이미 커버한 뒤에는 비슷한 rollout이 반복되기 때문입니다. 이 논문은 quantity보다 coverage가 중요하다는 쪽에 가깝습니다."),
           qa("왜 open-loop best horizon과 closed-loop best horizon이 다른가요?", "longer horizon은 replay fitting에는 좋을 수 있지만, policy adaptation까지 포함한 closed-loop fine-tuning에서는 optimization difficulty와 distribution shift가 함께 작용하기 때문입니다."),
@@ -862,7 +891,7 @@ window.ASAP_DECK = {
       ],
       ...note(
         "Figure 11은 delta action model이 있으면 그다음 무엇을 해야 하는지를 묻는 실험입니다. fixed-point iteration이나 gradient search처럼 training-free하게 correction만 계산해서 쓰는 방법도 가능하지만, 논문 결과는 RL fine-tuning이 가장 낮은 tracking error를 보여준다고 말합니다. 저자들의 해석은 분명합니다. dynamics alignment는 필요하지만, 그 위에서 policy가 새 상태 분포에 맞게 feedback behavior를 다시 배워야 진짜 transfer gain이 나온다는 것입니다.",
-        "fixed-point iteration은 correction을 반복적으로 적용해 self-consistent action을 찾으려는 방식이고, gradient search는 objective를 기준으로 action을 직접 최적화하는 접근입니다. 둘 다 training-free라는 장점은 있지만, distribution shift에 약하고 closed-loop policy를 재구성하지 못합니다.",
+        "fixed-point iteration은 correction을 반복적으로 적용해 self-consistent action을 찾으려는 방식이고, gradient search는 objective를 기준으로 action을 직접 최적화하는 접근입니다. 둘 다 training-free라는 장점은 있지만, distribution shift에 약하고 closed-loop policy를 재구성하지 못합니다. PPO fine-tuning이 필요한 이유를 가장 직접적으로 설명해 주는 실험이라고 보시면 됩니다.",
         [qa("이 결과가 왜 중요한가요?", "ASAP의 핵심이 단순 residual fitting이 아니라 aligned simulator 안에서의 재학습이라는 점을 가장 직접적으로 뒷받침하기 때문입니다.")],
       ),
     },
@@ -949,8 +978,8 @@ window.ASAP_DECK = {
         `The strongest empirical pattern is consistent improvement from <strong>Table III</strong> to <strong>Table V</strong>, rather than a single isolated benchmark win.`,
       ],
       ...note(
-        "마지막으로 이 논문을 한 문장으로 요약하면, 이미 꽤 잘 만들어진 agile motion-tracking policy가 마지막 transfer boundary에서 잃는 민첩성을 되찾기 위해 simulator를 먼저 고치고 policy를 다시 학습시키는 방법이라고 할 수 있습니다. 그리고 그 주장은 open-loop replay, closed-loop sim-to-sim, real-world result, 그리고 ablation까지 같은 방향의 증거로 뒷받침됩니다. 그래서 ASAP의 contribution은 motion generation이 아니라 simulator alignment에 있습니다.",
-        "발표를 마무리할 때는 new motion source가 아니라 transfer-specific correction이라는 점, 그리고 runtime complexity를 늘리지 않고 real-world quality를 올렸다는 점을 함께 강조하는 것이 좋습니다.",
+        "이 논문을 한 문장으로 요약하면, 이미 꽤 잘 만들어진 agile motion-tracking policy가 마지막 transfer boundary에서 잃는 민첩성을 되찾기 위해 simulator를 먼저 고치고 policy를 다시 학습시키는 방법이라고 할 수 있습니다. 그리고 그 주장은 open-loop replay, closed-loop sim-to-sim, real-world result, 그리고 ablation까지 같은 방향의 증거로 뒷받침됩니다. 그래서 ASAP의 contribution은 motion generation이 아니라 simulator alignment에 있습니다.",
+        "발표를 마무리할 때는 new motion source가 아니라 transfer-specific correction이라는 점, 그리고 runtime complexity를 늘리지 않고 real-world quality를 올렸다는 점을 함께 강조하는 것이 좋습니다. 연구실 관점에서는 residual simulator alignment가 향후 더 넓은 embodiment나 task family로 확장될 수 있는지가 다음 질문이 됩니다.",
         [qa("이 논문의 가장 강한 증거 하나만 고르라면 무엇인가요?", "실제 로봇 OOD motion에서도 개선이 유지된다는 Table V와 Figure 8 조합이 가장 강합니다.")],
       ),
     },
@@ -969,7 +998,7 @@ window.ASAP_DECK = {
         text: "If stage-1 imitation is already good, improving simulator physics can be a more efficient path to better deployment than redesigning the controller.",
       },
       ...note(
-        "마지막으로 링크를 남겨 두었습니다. 발표에서 남겨야 할 질문은 단순합니다. stage 1 imitation이 이미 충분히 좋다면, 다음 성능 향상은 policy architecture를 또 바꾸는 데서 오느냐, 아니면 simulator가 가르치는 physics를 실제에 더 가깝게 만드는 데서 오느냐입니다. ASAP은 그 두 번째 답을 가장 직접적으로 밀어붙이는 논문입니다.",
+        "링크는 마지막에 정리해 두었습니다. 발표에서 남겨야 할 질문은 단순합니다. stage 1 imitation이 이미 충분히 좋다면, 다음 성능 향상은 policy architecture를 또 바꾸는 데서 오느냐, 아니면 simulator가 가르치는 physics를 실제에 더 가깝게 만드는 데서 오느냐입니다. ASAP은 그 두 번째 답을 가장 직접적으로 밀어붙이는 논문입니다.",
         "project page에는 실제 영상이 정리돼 있고, code repository에는 simulator alignment 구현 세부가 들어 있습니다. 발표 뒤에 method를 더 파고들 때는 Figure 2, Table III, Table IV, Table V 순서로 다시 보는 것이 가장 효율적입니다.",
         [qa("후속으로 가장 먼저 검토할 만한 확장 방향은 무엇인가요?", "더 넓은 motion set과 더 많은 embodiment에서 iterative rollout refresh까지 포함한 scaling study를 보는 것이 다음 단계로 자연스럽습니다.")],
       ),
