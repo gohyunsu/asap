@@ -9,17 +9,17 @@ English lab presentation deck for:
 - Code: https://github.com/LeCAR-Lab/ASAP
 - Target GitHub Pages URL: https://gohyunsu.github.io/asap/
 
-This is a static slide site. It uses a white, fixed-layout presentation style with hierarchical top navigation, keyboard navigation, hash links, and deck-level scrolling so long slides remain readable without losing the fixed header.
+This is a static slide site. It uses a white, fixed-layout presentation style with hierarchical top navigation, keyboard navigation, hash links, deck-level scrolling, and a compact final-presentation narrative structure.
 
 ## Structure
 
-1. Setup
-2. Transfer Gap
-3. Pre-training
+1. Thesis
+2. Landscape
+3. Pretraining
 4. Alignment
 5. Evidence
 6. Takeaways
 
 ## Notes
 
-The deck is intentionally compact. It keeps the fixed presentation format, but reduces repeated background material, sharpens each slide to one role, and keeps the paper's transfer loop easier to read from top to bottom.
+The deck is intentionally compact and presentation-oriented. It keeps the fixed presentation format, restores a stronger related-work reading of the field, and focuses on the paper's core transfer argument without extra deck-level meta commentary.

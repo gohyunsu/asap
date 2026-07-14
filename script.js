@@ -97,7 +97,7 @@ function renderVisual(visual) {
     const caption = [visual.caption, source].filter(Boolean).join(" · ");
     return `
       <figure class="visual ${visual.cover ? "cover" : ""}">
-        <img src="${visual.src}" alt="${visual.alt || visual.caption || ""}" />
+        <img src="${visual.src}" alt="${visual.alt || visual.caption || ""}" loading="lazy" />
         ${caption ? `<figcaption class="caption">${caption}</figcaption>` : ""}
       </figure>
     `;

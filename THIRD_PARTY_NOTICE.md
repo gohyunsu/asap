@@ -6,7 +6,7 @@ Some local visual assets in `assets/` are copied from the official LeCAR-Lab/ASA
 
 The upstream ASAP repository is distributed under the MIT License.
 
-This slide deck also embeds or links to official project-page media from:
+This slide deck also embeds, links to, or locally copies official project-page media from:
 
 - ASAP: https://agile.human2humanoid.com/
 - DeepMimic: https://xbpeng.github.io/projects/DeepMimic/index.html
