@@ -370,7 +370,7 @@ window.ASAP_DECK = {
       section: "pretrain",
       chapter: "Policy",
       title: "Phase-Based Motion Tracking Policy",
-      subtitle: "Stage 1 uses PPO with an asymmetric actor-critic and a phase-conditioned actor.",
+      subtitle: "Stage 1 uses PPO with an asymmetric actor-critic, a phase-conditioned actor, and a 23-DoF PD-control interface.",
       layout: "wide",
       visual: {
         type: "table",
@@ -385,6 +385,7 @@ window.ASAP_DECK = {
       points: [
         `The actor is <strong>phase-based</strong>: timing information tells the controller where it is in the motion.`,
         `Because the actor does not depend on position-based motion targets, the policy avoids odometry dependence at deployment.`,
+        `The deployed actor outputs <strong>23-dimensional target joint positions</strong>, while the critic receives additional privileged reference information during PPO training.`,
       ],
       ...note(
         "이 슬라이드는 stage 1 policy의 실제 설계를 담고 있습니다. actor는 5-step proprioceptive history와 phase variable을 보고 23차원 target joint position을 출력하고, 이 값은 PD controller로 내려갑니다. critic은 여기에 reference global position과 root linear velocity 같은 privileged information을 더 봅니다. 그리고 이 전체 policy는 PPO로 학습됩니다. 즉 paper의 핵심 policy는 phase-based motion tracking policy이고, delta action도 결국 이 action interface 위에서 작동합니다.",
@@ -427,7 +428,7 @@ window.ASAP_DECK = {
     {
       section: "pretrain",
       chapter: "Policy",
-      title: "Pretraining Stabilization Choices",
+      title: "Stabilization Techniques for Stage-1 Training",
       subtitle: "The authors single out three training choices as necessary for difficult agile motions.",
       visual: {
         type: "sequence",
@@ -440,6 +441,7 @@ window.ASAP_DECK = {
       },
       points: [
         `Without curriculum and RSI, difficult motions fail too early and the policy never learns the later phases correctly.`,
+        `The termination threshold is explicitly annealed from <strong>1.5 m</strong> to <strong>0.3 m</strong> as tracking improves.`,
       ],
       ...note(
         "이 슬라이드는 저자들이 stable pretraining의 핵심이라고 직접 강조한 선택들입니다. termination threshold를 처음에는 1.5미터로 느슨하게 두고 나중에 0.3미터까지 조이는 curriculum을 사용하고, RSI로 motion phase를 랜덤 초기화해서 landing과 recovery를 초반부터 병렬로 학습하게 만듭니다. 이 두 가지가 없으면 jump나 single-leg balance 같은 동작은 초반 실패만 반복하고 후반 phase를 거의 보지 못하게 됩니다.",
@@ -453,7 +455,7 @@ window.ASAP_DECK = {
     {
       section: "pretrain",
       chapter: "Gap",
-      title: "Stage-1 Capability and Remaining Gap",
+      title: "Pretrained Policy and Remaining Transfer Gap",
       subtitle: "The pretrained policy can already track in simulation and even run on hardware, but motion quality remains limited by physics mismatch.",
       visual: projectImage(
         "assets/motion_tracking.gif",
@@ -473,7 +475,7 @@ window.ASAP_DECK = {
     {
       section: "alignment",
       chapter: "Data",
-      title: "Real-World Rollout Data and State Recording",
+      title: "Real-World Rollout Dataset",
       subtitle: "Stage 2 starts from measured state-action-next-state tuples collected with the pretrained policy on the robot.",
       layout: "wide",
       visual: {
@@ -489,6 +491,7 @@ window.ASAP_DECK = {
       points: [
         `The real dataset is written as <strong>Dʳ = {sʳ₀, aʳ₀, ..., sʳ_T, aʳ_T}</strong>.`,
         `Replay starts from the measured real state, so the simulator is asked to reproduce the same local transition that the hardware experienced.`,
+        `The measured state contains <strong>59 state dimensions</strong> before the 23-dimensional recorded action is considered.`,
       ],
       ...note(
         "stage 2의 출발점은 real rollout dataset입니다. 저자들은 pretrained policy를 실제 G1에 올려서 trajectory를 수집하고, 각 시점의 state와 action을 기록합니다. state에는 base position과 velocity, base orientation quaternion, angular velocity, 그리고 23개 관절의 position과 velocity가 포함됩니다. 이렇게 기록된 Dʳ가 바로 simulator alignment의 supervision 역할을 합니다.",
@@ -502,7 +505,7 @@ window.ASAP_DECK = {
     {
       section: "alignment",
       chapter: "Alignment",
-      title: "Delta Action Model",
+      title: "Residual Action Policy Formulation",
       subtitle: "ASAP learns a residual action policy that makes simulated transitions match recorded real transitions.",
       visual: {
         type: "formula",
@@ -516,6 +519,7 @@ window.ASAP_DECK = {
         `Each RL step initializes the simulator at the measured real state <strong>sʳ_t</strong>.`,
         `The reward minimizes next-state discrepancy to <strong>sʳ_{t+1}</strong> while regularizing action magnitude.`,
         `The delta policy itself is trained with <strong>PPO</strong>, not by one-step supervised fitting alone.`,
+        `This choice keeps the correction at the <strong>same control interface</strong> used later by the motion-tracking policy.`,
       ],
       ...note(
         "이 슬라이드가 ASAP의 핵심 수식입니다. simulator를 real state에서 시작시키고, 실제로 기록된 action aʳ_t에 state-dependent corrective action Δa_t를 더합니다. 그리고 그렇게 만든 simulator next state가 실제 next state sʳ_{t+1}에 가까워지도록 πΔ를 학습합니다. 즉 residual dynamics를 next state 쪽에서 직접 보정하는 것이 아니라, simulator가 받는 effective action을 보정하는 방식입니다.",
@@ -529,7 +533,7 @@ window.ASAP_DECK = {
     {
       section: "alignment",
       chapter: "Alignment",
-      title: "Reward Terms for Delta Action Learning",
+      title: "Reward Terms for Residual Action Training",
       subtitle: "The delta policy is trained to correct transitions, so its reward is lighter on actuation and explicit about action magnitude.",
       layout: "wide",
       visual: {
@@ -545,6 +549,7 @@ window.ASAP_DECK = {
       points: [
         `Compared with pretraining, the torque penalty is much smaller (<strong>-0.1</strong> instead of <strong>-5.0</strong>) because πΔ is not the whole controller.`,
         `An explicit <strong>action-norm penalty</strong> is added so the residual remains corrective rather than dominating the base action.`,
+        `Task-side weights are flattened to <strong>1.0 / 0.5</strong>-scale terms because the goal is transition correction rather than full behavior synthesis.`,
       ],
       ...note(
         "Table II를 보면 delta action learning reward는 pretraining reward와 성격이 다릅니다. 여기서 πΔ는 전체 motion을 생성하는 policy가 아니라, base action을 얼마나 수정할지 결정하는 residual policy이기 때문에 torque penalty가 훨씬 약해지고, 대신 action norm penalty가 명시적으로 들어갑니다. task-side tracking term은 여전히 body position, rotation, velocity, joint position 같은 항목으로 구성되지만, 전체 목적은 motion generation이 아니라 transition correction입니다.",
@@ -555,7 +560,7 @@ window.ASAP_DECK = {
     {
       section: "alignment",
       chapter: "Fine-Tuning",
-      title: "Simulator Alignment and Policy Fine-Tuning",
+      title: "Aligned Simulation and Policy Fine-Tuning",
       subtitle: "After delta-action training, the residual is frozen inside the simulator and the tracking policy is fine-tuned again with PPO.",
       visual: {
         type: "pipeline",
@@ -570,6 +575,7 @@ window.ASAP_DECK = {
       points: [
         `The final runtime system is still <strong>a single policy</strong>; the residual model is a training-time alignment mechanism.`,
         `Fine-tuning remains necessary because improved local transitions change the state distribution and the recovery strategy the policy must learn.`,
+        `The paper compares this PPO fine-tuning step against fixed-point and gradient-search alternatives later in the analysis section.`,
       ],
       ...note(
         "delta action model을 학습한 뒤에는 그것을 simulator 안에 고정하고, motion-tracking policy를 다시 PPO로 fine-tune합니다. 이 순서가 중요한 이유는 residual이 one-step transition bias를 줄여도, 그 위에서 policy가 방문하게 되는 state distribution 자체는 다시 달라지기 때문입니다. 따라서 aligned simulator가 만들어졌다고 해서 base policy를 그대로 쓰는 것으로 끝나지 않고, 그 dynamics에 맞는 feedback behavior를 policy가 다시 학습해야 합니다.",
@@ -584,7 +590,7 @@ window.ASAP_DECK = {
       section: "evidence",
       chapter: "Protocol",
       role: "Overview",
-      title: "Evaluation Questions and Metrics",
+      title: "Experimental Questions and Metrics",
       subtitle: "The paper organizes evidence around six questions; the main talk needs the first three plus the supporting analyses.",
       layout: "wide",
       visual: {
@@ -600,6 +606,7 @@ window.ASAP_DECK = {
       points: [
         `The main metrics are <strong>Success</strong>, <strong>E_g-mpjpe</strong>, <strong>E_mpjpe</strong>, <strong>E_acc</strong>, and <strong>E_vel</strong>.`,
         `A trial is marked unsuccessful when the average body-distance error exceeds <strong>0.5 m</strong> during imitation.`,
+        `The evaluation order is deliberate: <strong>replay quality → controller quality → real-world quality → ablation-based interpretation</strong>.`,
       ],
       ...note(
         "결과 파트는 이 네 줄만 기억하시면 됩니다. Q1은 aligned simulator가 정말 real transition을 더 잘 재현하느냐, Q2는 그 simulator에서 다시 학습한 policy가 실제로 더 좋은 controller냐, Q3는 그 이득이 real robot에 살아남느냐, 그리고 Q4부터 Q6은 왜 이런 결과가 나왔는지를 푸는 분석입니다. 발표에서는 이 순서대로 읽는 것이 가장 깔끔합니다.",
@@ -613,7 +620,7 @@ window.ASAP_DECK = {
     {
       section: "evidence",
       chapter: "Simulation",
-      title: "Open-Loop Replay Example",
+      title: "Open-Loop Replay Protocol",
       subtitle: "Replay isolates dynamics mismatch by removing policy adaptation and asking whether the simulator can reproduce a recorded trajectory.",
       visual: paperImage(
         "assets/asap_figure4_replay.png",
@@ -623,6 +630,7 @@ window.ASAP_DECK = {
         `The figure replays the same IsaacSim state-action trajectory in IsaacGym under Vanilla, SysID, DeltaDynamics, and ASAP.`,
         `The bottom MPJPE curves show that <strong>ASAP accumulates mismatch more slowly over time</strong>.`,
         `The paper explicitly notes that πΔ is trained across multiple motions, so this is not a one-clip overfit example.`,
+        `Replay is reported at <strong>0.25 s, 0.5 s, and 1.0 s</strong> horizons in Table III.`,
       ],
       ...note(
         "open-loop replay는 policy adaptation을 완전히 제거하고 dynamics matching만 보는 실험입니다. 즉 testing environment에서 기록한 trajectory를 training environment에서 같은 초기 state와 action sequence로 재생해 보고, 얼마나 빨리 tracking error가 커지는지를 측정합니다. Figure 5에서 ASAP이 가장 천천히 깨진다는 것은 simulator alignment 자체가 더 잘 됐다는 뜻입니다.",
@@ -633,8 +641,8 @@ window.ASAP_DECK = {
     {
       section: "evidence",
       chapter: "Simulation",
-      title: "Open-Loop Replay Results at 1.0 s",
-      subtitle: "The longest replay horizon shows the clearest separation between methods.",
+      title: "Open-Loop Replay Results (Table III)",
+      subtitle: "The longest replay horizon shows the clearest separation between methods, so 1.0 s is the most informative row.",
       layout: "wide",
       visual: {
         type: "table",
@@ -650,6 +658,7 @@ window.ASAP_DECK = {
         `At <strong>1.0 s replay</strong>, ASAP cuts IsaacSim global error from <strong>80.8</strong> to <strong>37.9</strong>.`,
         `On Genesis, it cuts global error from <strong>82.5</strong> to <strong>36.9</strong> and root-velocity error from <strong>11.4</strong> to <strong>5.10</strong>.`,
         `SysID helps modestly, while DeltaDynamics improves some local pose metrics but remains weaker on long-horizon global drift.`,
+        `At <strong>0.5 s</strong>, ASAP is also strongest on IsaacSim global error (<strong>26.8</strong> versus <strong>33.3</strong> for OpenLoop) while keeping acceleration and velocity errors lowest.`,
       ],
       ...note(
         "Table III에서 가장 볼 가치가 큰 줄은 1.0초 replay입니다. horizon이 길어질수록 dynamics mismatch가 누적되기 때문에 method 간 차이가 가장 분명해집니다. 여기서 ASAP은 IsaacSim 기준 E_g-mpjpe를 80.8에서 37.9로 줄이고, Genesis 기준으로도 82.5에서 36.9로 줄입니다. E_acc와 E_vel도 각각 4점대와 5점대로 가장 낮습니다. 즉 단순히 pose 한두 프레임이 아니라, rollout 전체의 transition quality가 좋아졌다고 읽을 수 있습니다.",
@@ -663,7 +672,7 @@ window.ASAP_DECK = {
     {
       section: "evidence",
       chapter: "Simulation",
-      title: "Closed-Loop Motion Imitation Across Simulators",
+      title: "Closed-Loop Motion Imitation Results",
       subtitle: "The next question is whether the aligned simulator produces a better controller, not just better replay curves.",
       visual: paperImage(
         "assets/asap_figure5_difficulty.png",
@@ -673,6 +682,7 @@ window.ASAP_DECK = {
         `Closed-loop evaluation covers IsaacGym→IsaacSim and IsaacGym→Genesis across <strong>easy, medium, and hard</strong> motions.`,
         `ASAP is the only method that keeps <strong>100% success</strong> across all difficulty levels in both test simulators.`,
         `The hard split is the most informative because it exposes cumulative contact and recovery errors immediately.`,
+        `For example, on <strong>medium Genesis</strong>, success improves from <strong>94.3%</strong> to <strong>100%</strong> and E_g-mpjpe improves from <strong>169</strong> to <strong>126</strong>.`,
       ],
       ...note(
         "이제는 simulator를 잘 맞췄다는 사실만으로는 부족하고, 그 simulator에서 다시 학습한 policy가 실제로 더 나은 controller인지 봐야 합니다. Figure 6은 easy, medium, hard motion 전반에서 qualitative comparison을 보여주고, Table IV는 그 결과를 수치화합니다. 중요한 요점은 ASAP이 두 testing simulator 모두에서 success rate를 일관되게 유지한다는 점입니다.",
