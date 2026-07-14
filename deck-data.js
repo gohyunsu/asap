@@ -738,7 +738,7 @@ window.ASAP_DECK = {
     {
       section: "evidence",
       chapter: "Real World",
-      title: "Real-World Evaluation Protocol",
+      title: "Real-World Experimental Protocol",
       subtitle: "The real-world study is intentionally practical: safe enough to execute, but still dynamic enough to show the transfer gap.",
       visual: {
         type: "cards",
@@ -752,6 +752,7 @@ window.ASAP_DECK = {
       points: [
         `Because data collection was expensive and failure-prone, the real-robot study learns only a <strong>4-DoF lower-body delta model</strong>.`,
         `The paper reports that two Unitree G1 robots broke during collection because highly dynamic motions quickly overheated the hardware.`,
+        `A separate locomotion policy handles task transitions with command <strong>(v, ω, Π)</strong> so the robot can recover balance without manual resets.`,
       ],
       ...note(
         "real-world protocol은 이 논문의 실용성을 잘 보여줍니다. 저자들은 안전성과 대표성을 함께 고려해 다섯 개의 motion-tracking task를 골랐고, 각 task 사이의 전환은 locomotion policy가 맡도록 만들었습니다. 그런데 full 23-DoF delta action model을 실제 데이터로 학습하려면 400개가 넘는 clip이 필요했고, dynamic motion 수집 중 모터 과열과 하드웨어 손상이 심해서 두 대의 G1이 고장났다고 직접 보고합니다. 그래서 real-robot 실험에서는 4-DoF lower-body delta로 타협합니다.",
@@ -765,7 +766,7 @@ window.ASAP_DECK = {
     {
       section: "evidence",
       chapter: "Real World",
-      title: "Real-World Closed-Loop Results",
+      title: "Real-World Closed-Loop Evaluation",
       subtitle: "The same intervention improves both an in-distribution motion and an out-of-distribution motion on hardware.",
       visual: paperImage(
         "assets/asap_figure7_real_before_after.png",
@@ -775,6 +776,7 @@ window.ASAP_DECK = {
         `<strong>Kick.</strong> E_g-mpjpe <strong>61.2 → 50.2</strong>, E_mpjpe <strong>43.5 → 40.1</strong>, E_acc <strong>2.96 → 2.46</strong>, E_vel <strong>2.91 → 2.70</strong>.`,
         `<strong>LeBron \"Silencer\" (OOD).</strong> E_g-mpjpe <strong>159 → 112</strong>, E_mpjpe <strong>55.3 → 47.5</strong>, E_acc <strong>3.43 → 2.84</strong>, E_vel <strong>6.43 → 5.94</strong>.`,
         `The OOD gain matters because it suggests the residual captures <strong>reusable dynamics bias</strong>, not only one memorized trajectory.`,
+        `Both tasks improve across <strong>all four reported metrics</strong>, which is important because smoother motion alone would not guarantee better tracking fidelity.`,
       ],
       ...note(
         "Table V와 Figure 8이 real-world 결과의 핵심입니다. kick처럼 in-distribution motion에서도 모든 지표가 개선되지만, 더 중요한 것은 LeBron Silencer처럼 out-of-distribution motion에서도 E_g-mpjpe가 159에서 112로, E_mpjpe가 55.3에서 47.5로 줄어든다는 점입니다. 즉 learned residual이 특정 한 motion의 patch가 아니라, hardware dynamics의 reusable bias를 어느 정도 포착했다고 해석할 수 있습니다.",
@@ -788,7 +790,7 @@ window.ASAP_DECK = {
     {
       section: "evidence",
       chapter: "Real World",
-      title: "Forward-Jump Demonstration",
+      title: "Forward-Jump Demonstration on Unitree G1",
       subtitle: "The paper also demonstrates a forward leap of more than 1 m on the 1.35 m Unitree G1.",
       variant: "hero",
       visual: paperImage(
@@ -798,7 +800,7 @@ window.ASAP_DECK = {
         { cover: true },
       ),
       points: [
-        `This figure is not a benchmark row; it shows the <strong>motion regime</strong> the paper ultimately cares about.`,
+        `The demonstrated jump exceeds <strong>1 m forward</strong> on the <strong>1.35 m</strong> Unitree G1 and illustrates the dynamic regime targeted by the paper.`,
       ],
       ...note(
         "Figure 9는 정량 테이블이라기보다 capability demonstration입니다. 1.35미터 키의 G1이 1미터가 넘는 forward leap를 수행한다는 것은, 이 논문이 겨냥하는 동작 영역이 얼마나 공격적인지를 잘 보여줍니다. 다시 말해 ASAP은 쉬운 locomotion transfer가 아니라, conservative policy로는 쉽게 무너지는 high-impulse skill transfer를 목표로 합니다.",
@@ -809,13 +811,14 @@ window.ASAP_DECK = {
     {
       section: "evidence",
       chapter: "Analysis",
-      title: "Ablation: Dataset Size, Horizon, and Action Norm",
+      title: "Sensitivity to Dataset Size, Horizon, and Action Norm",
       subtitle: "The delta model is sensitive to what data it sees and how far it is asked to reason.",
       visual: paperImage(
         "assets/asap_figure9_ablation_size_horizon.png",
         "Figure 10 from the paper: dataset size, training horizon, and action-norm study.",
       ),
       points: [
+        `The dataset-size sweep spans <strong>43, 430, 4300, and 43000</strong> samples.`,
         `Scaling the dataset from <strong>4300</strong> to <strong>43000</strong> samples reduces closed-loop error by only <strong>0.65%</strong>.`,
         `Open-loop replay keeps improving up to <strong>1.5 s</strong>, but the best closed-loop result is at <strong>1.0 s</strong>.`,
         `The best action-norm weight is around <strong>0.1</strong>; larger values over-constrain the residual.`,
@@ -832,7 +835,7 @@ window.ASAP_DECK = {
     {
       section: "evidence",
       chapter: "Analysis",
-      title: "Ablation: Using the Delta Action Model",
+      title: "Policy Fine-Tuning Strategies with a Learned Delta Model",
       subtitle: "The paper compares three ways to use a learned delta model once it exists.",
       visual: paperImage(
         "assets/asap_figure10_delta_finetune.png",
@@ -842,6 +845,7 @@ window.ASAP_DECK = {
         `RL fine-tuning achieves the <strong>lowest tracking error over time</strong>.`,
         `Fixed-point iteration and gradient search are training-free, but the paper argues they are too myopic and suffer from out-of-distribution states.`,
         `This is strong evidence that <strong>aligned dynamics alone are not enough</strong>; policy adaptation remains necessary.`,
+        `The paper explicitly reports that both training-free alternatives perform worse than the PPO fine-tuning curve during deployment.`,
       ],
       ...note(
         "Figure 11은 delta action model이 있으면 그다음 무엇을 해야 하는지를 묻는 실험입니다. fixed-point iteration이나 gradient search처럼 training-free하게 correction만 계산해서 쓰는 방법도 가능하지만, 논문 결과는 RL fine-tuning이 가장 낮은 tracking error를 보여준다고 말합니다. 저자들의 해석은 분명합니다. dynamics alignment는 필요하지만, 그 위에서 policy가 새 상태 분포에 맞게 feedback behavior를 다시 배워야 진짜 transfer gain이 나온다는 것입니다.",
@@ -852,14 +856,14 @@ window.ASAP_DECK = {
     {
       section: "evidence",
       chapter: "Analysis",
-      title: "Ablation: Random Action Noise versus Delta Action",
+      title: "Comparison with Random Action Noise",
       subtitle: "The authors explicitly test whether the gain is just generic robustness from perturbing actions.",
       visual: paperImage(
         "assets/asap_figure11_noise.png",
         "Figure 12 from the paper: random action noise versus ASAP fine-tuning.",
       ),
       points: [
-        `Random action noise with <strong>β ∈ [0.025, 0.2]</strong> does improve over no fine-tuning.`,
+        `The noise sweep studies <strong>β ∈ [0.025, 0.4]</strong>, with the useful range concentrated in <strong>[0.025, 0.2]</strong>.`,
         `The best action-noise policy still reaches about <strong>173 MPJPE</strong>, whereas ASAP reaches <strong>126 MPJPE</strong>.`,
         `The gap suggests delta action is not just robustness injection; it is <strong>structured correction</strong>.`,
       ],
@@ -872,7 +876,7 @@ window.ASAP_DECK = {
     {
       section: "takeaways",
       chapter: "Interpretation",
-      title: "Interpretation of the Learned Residuals",
+      title: "Joint-Wise Structure of the Learned Residuals",
       subtitle: "The learned correction is concentrated, asymmetric, and physically interpretable rather than uniform across the body.",
       visual: paperImage(
         "assets/asap_figure12_delta_structure.png",
@@ -880,6 +884,7 @@ window.ASAP_DECK = {
       ),
       points: [
         `Larger residual magnitude appears in the <strong>lower body</strong>, especially around knee and ankle joints.`,
+        `The paper highlights the <strong>ankle pitch joint</strong> as showing the most significant discrepancy in the illustrated IsaacGym→IsaacSim setting.`,
         `Left-right asymmetries remain visible, consistent with hardware-specific actuation and contact bias.`,
         `This pattern supports the claim that πΔ models <strong>structured dynamics mismatch</strong> better than uniform noise.`,
       ],
@@ -915,19 +920,20 @@ window.ASAP_DECK = {
     {
       section: "takeaways",
       chapter: "Interpretation",
-      title: "Takeaways",
+      title: "Summary and Interpretation",
       subtitle: "The paper is most convincing when read as simulator correction for already-competent agile motion tracking.",
       visual: {
         type: "cards",
         cols: 3,
         items: [
-          ["What changes", "Real rollouts train a delta action model that alters simulator transitions before final policy training."],
-          ["What improves", "Replay quality, cross-simulator tracking, and real-world motion quality all improve in the same direction."],
-          ["Why it matters", "The gains survive on hard dynamic motions while deployment stays single-policy."],
+          ["Mechanism", "Real rollouts train a delta action model that alters simulator transitions before final PPO fine-tuning."],
+          ["Evidence", "Replay quality, cross-simulator tracking, and real-world motion quality all improve in the same direction."],
+          ["Practical value", "The gains survive on hard dynamic motions while deployment stays single-policy."],
         ],
       },
       points: [
         `ASAP is less about generating new motion and more about <strong>preserving existing agile motion across the final transfer boundary</strong>.`,
+        `The strongest empirical pattern is consistent improvement from <strong>Table III</strong> to <strong>Table V</strong>, rather than a single isolated benchmark win.`,
       ],
       ...note(
         "마지막으로 이 논문을 한 문장으로 요약하면, 이미 꽤 잘 만들어진 agile motion-tracking policy가 마지막 transfer boundary에서 잃는 민첩성을 되찾기 위해 simulator를 먼저 고치고 policy를 다시 학습시키는 방법이라고 할 수 있습니다. 그리고 그 주장은 open-loop replay, closed-loop sim-to-sim, real-world result, 그리고 ablation까지 같은 방향의 증거로 뒷받침됩니다. 그래서 ASAP의 contribution은 motion generation이 아니라 simulator alignment에 있습니다.",

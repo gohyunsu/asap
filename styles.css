@@ -567,8 +567,8 @@ td {
   text-align: left;
   vertical-align: top;
   color: #505050;
-  font-size: clamp(1.08rem, 1.08vw, 1.16rem);
-  line-height: 1.58;
+  font-size: clamp(1.12rem, 1.14vw, 1.22rem);
+  line-height: 1.62;
 }
 
 th {
@@ -659,7 +659,7 @@ td:last-child {
   display: block;
   margin-bottom: 4px;
   color: var(--ink);
-  font-size: 1.05rem;
+  font-size: 1.1rem;
 }
 
 .timeline-item p,
@@ -667,8 +667,8 @@ td:last-child {
 .sequence-step p {
   margin: 0;
   color: var(--muted);
-  font-size: 1.08rem;
-  line-height: 1.58;
+  font-size: 1.12rem;
+  line-height: 1.62;
 }
 
 .compare {
@@ -693,19 +693,19 @@ td:last-child {
 
 .compare-row strong {
   color: var(--red);
-  font-size: 1.04rem;
+  font-size: 1.08rem;
 }
 
 .compare-row span {
   font-weight: 780;
-  font-size: 1.05rem;
+  font-size: 1.08rem;
 }
 
 .compare-row p {
   margin: 0;
   color: var(--muted);
-  font-size: 1.08rem;
-  line-height: 1.56;
+  font-size: 1.12rem;
+  line-height: 1.62;
 }
 
 .metrics {
