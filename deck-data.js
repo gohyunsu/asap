@@ -117,8 +117,8 @@ window.ASAP_DECK = {
       section: "setup",
       chapter: "Task",
       variant: "hero",
-      title: "Agile Whole-Body Skill Transfer",
-      subtitle: "The target is closed-loop preservation of dynamic motion, not only visually plausible playback in simulation.",
+      title: "Agile Whole-Body Skills on Unitree G1",
+      subtitle: "The paper targets closed-loop preservation of dynamic motion rather than visually plausible playback in simulation.",
       visual: projectVideo(ASAP_HERO_VIDEO_URL, "Official ASAP project video.", { cover: true }),
       ...note(
         "이 장면에서는 동작의 화려함보다 닫힌 루프에서의 유지 능력을 보시면 됩니다. 즉 점프나 회전 이후에도 자세가 이어지고, 착지 후에 바로 무너지지 않으며, 다음 상태로 자연스럽게 넘어가는지가 핵심입니다. ASAP이 지키고 싶은 것은 바로 이런 closed-loop execution입니다.",
@@ -129,8 +129,8 @@ window.ASAP_DECK = {
     {
       section: "setup",
       chapter: "Method",
-      title: "Problem Setting and Claimed Contribution",
-      subtitle: "The paper assumes stage-1 imitation is already reasonably strong and focuses on the remaining transfer failure.",
+      title: "Contributions and Evaluation Scope",
+      subtitle: "ASAP is presented as a transfer method on top of an already competent motion-tracking stack.",
       visual: {
         type: "cards",
         cols: 3,
@@ -141,13 +141,13 @@ window.ASAP_DECK = {
         ],
       },
       points: [
-        `The paper's first contribution is the <strong>two-stage ASAP framework</strong> for simulator alignment with real rollout data.`,
-        `Its second contribution is <strong>real-world deployment of RL-based whole-body skills</strong> on Unitree G1.`,
-        `Its third contribution is a <strong>multi-environment evaluation</strong> that separates replay quality, controller quality, and real-world behavior.`,
+        `The paper's first contribution is the <strong>two-stage ASAP framework</strong> for aligning simulator physics with real rollout data.`,
+        `Its second contribution is <strong>real-world deployment of RL-based whole-body skills</strong> on Unitree G1 with a single final policy.`,
+        `Its third contribution is a <strong>three-scenario evaluation</strong>: IsaacGym→IsaacSim, IsaacGym→Genesis, and IsaacGym→Real.`,
       ],
       ...note(
-        "이 슬라이드는 논문이 어디까지를 자기 기여로 주장하는지 정리하는 역할입니다. 저자들은 reference generation 자체를 새로 제안하는 것이 아니라, 이미 있는 stage 1 motion tracking stack 위에 simulator alignment 단계를 추가합니다. 그리고 그 결과를 두 개의 simulator 전이와 실제 G1 로봇 전이에서 모두 검증했다는 점을 contribution으로 내세웁니다.",
-        "이 논문을 읽을 때 중요한 것은 claim boundary입니다. 즉 이것은 새로운 humanoid architecture나 새로운 motion source 논문이 아니라, transfer mechanism 논문이라는 점을 먼저 고정해야 합니다.",
+        "이 슬라이드는 논문이 어디까지를 자기 기여로 주장하는지 정리하는 역할입니다. 저자들은 reference generation 자체를 새로 제안하는 것이 아니라, 이미 있는 stage 1 motion tracking stack 위에 simulator alignment 단계를 추가합니다. 그리고 그 결과를 IsaacGym에서 IsaacSim으로, IsaacGym에서 Genesis로, 그리고 실제 G1 로봇으로 옮기는 세 가지 전이 시나리오에서 모두 검증했다는 점을 contribution으로 내세웁니다.",
+        "이 논문을 읽을 때 중요한 것은 claim boundary입니다. 즉 이것은 새로운 humanoid architecture나 새로운 motion source 논문이 아니라, transfer mechanism 논문이라는 점을 먼저 고정해야 합니다. 발표에서는 이 경계를 분명히 해야 뒤의 결과 표를 과대해석하지 않게 됩니다.",
         [
           qa("이 논문은 새로운 policy architecture를 제안하나요?", "핵심은 architecture보다 transfer pipeline입니다. policy는 PPO 기반 motion-tracking policy이고, 새로 추가되는 것은 delta action model과 aligned simulator입니다."),
           qa("왜 multi-environment evaluation이 중요한가요?", "단순히 한 simulator나 한 hardware setup만 보면 우연한 튜닝 효과와 method 효과를 분리하기 어렵기 때문입니다."),
@@ -157,7 +157,7 @@ window.ASAP_DECK = {
     {
       section: "setup",
       chapter: "Method",
-      title: "Dynamics Mismatch in Agile Whole-Body Skills",
+      title: "Sources of Dynamics Mismatch",
       subtitle: "Dynamic reference tracking amplifies contact, actuation, and compliance errors over very short horizons.",
       visual: {
         type: "terms",
@@ -182,7 +182,7 @@ window.ASAP_DECK = {
     {
       section: "landscape",
       chapter: "Field",
-      title: "Positioning of ASAP in the Literature",
+      title: "Related Work Positioning",
       subtitle: "The key distinctions are motion source, control objective, transfer mechanism, and real-world evidence.",
       layout: "wide",
       visual: {
@@ -196,6 +196,10 @@ window.ASAP_DECK = {
           ["ASAP", "Retargeted human video", "Agile whole-body tracking", "Real-data simulator alignment", "Yes"],
         ],
       },
+      points: [
+        `DeepMimic and AMP explain where stage-1 tracking quality comes from, but not how to repair the final hardware transfer boundary.`,
+        `HumanPlus and Humanoid Parkour are stronger references for <strong>deployment regime and task difficulty</strong> than for simulator-alignment design.`,
+      ],
       ...note(
         "related work는 이 네 축으로 읽는 것이 가장 효율적입니다. 첫째, reference가 어디서 오는지. 둘째, policy가 무엇을 보존하려는지. 셋째, sim-to-real을 어떤 방식으로 다루는지. 넷째, 실제 하드웨어에서 어떤 수준의 evidence를 제시하는지입니다. 이 기준으로 보면 ASAP의 차별점은 motion source가 아니라 real-data simulator alignment에 있습니다.",
         "motion source는 사람이 보여준 움직임, mocap, 혹은 task reward처럼 policy가 따라가야 할 목표가 어디서 오느냐를 뜻합니다. transfer mechanism은 그 목표를 실제 하드웨어까지 가져갈 때 simulator mismatch를 무엇으로 처리하느냐를 뜻합니다.",
@@ -205,7 +209,7 @@ window.ASAP_DECK = {
     {
       section: "landscape",
       chapter: "Related Work",
-      title: "DeepMimic: Reference-Tracking Reinforcement Learning",
+      title: "DeepMimic",
       subtitle: "DeepMimic is the template for turning reference motion into robust physics-based behavior.",
       visual: {
         type: "image",
@@ -228,7 +232,7 @@ window.ASAP_DECK = {
     {
       section: "landscape",
       chapter: "Related Work",
-      title: "AMP: Adversarial Motion Priors",
+      title: "Adversarial Motion Priors (AMP)",
       subtitle: "AMP shifts part of behavior specification from manual reward engineering to data-driven motion priors.",
       visual: {
         type: "image",
@@ -251,8 +255,8 @@ window.ASAP_DECK = {
     {
       section: "landscape",
       chapter: "Related Work",
-      title: "HumanPlus: Human-to-Humanoid Motion Transfer",
-      subtitle: "HumanPlus is a better reference point for real-humanoid behavior transfer than for simulator alignment itself.",
+      title: "HumanPlus",
+      subtitle: "HumanPlus is a stronger reference for real-humanoid behavior transfer than for simulator alignment itself.",
       visual: {
         type: "image",
         src: "assets/humanplus_preview.gif",
@@ -263,7 +267,7 @@ window.ASAP_DECK = {
       },
       points: [
         `HumanPlus is relevant because it demonstrates <strong>rich human behavior reaching a real humanoid</strong>.`,
-        `Compared with ASAP, its emphasis is more on behavior source and deployment interface than on residual simulator correction.`,
+        `Compared with ASAP, its emphasis is more on behavior source, teleoperation or shadowing style interface, and deployment story than on residual simulator correction.`,
       ],
       ...note(
         "HumanPlus는 사람이 만든 동작이 실제 humanoid까지 이어질 수 있다는 점을 강하게 보여주는 계열입니다. 그래서 behavior source와 real deployment라는 관점에서는 ASAP와 같은 무대에 놓을 수 있습니다. 하지만 핵심 기술적 질문은 다릅니다. HumanPlus는 사람 행동을 로봇 동작으로 연결하는 인터페이스와 imitation story가 중심이고, ASAP은 이미 있는 tracking policy의 transfer failure를 무엇으로 줄일 것이냐가 중심입니다.",
@@ -274,7 +278,7 @@ window.ASAP_DECK = {
     {
       section: "landscape",
       chapter: "Related Work",
-      title: "Humanoid Parkour: High-Difficulty Dynamic Control",
+      title: "Humanoid Parkour",
       subtitle: "Humanoid Parkour is useful here as a marker of how demanding dynamic humanoid control has become.",
       visual: {
         type: "image",
@@ -297,7 +301,7 @@ window.ASAP_DECK = {
     {
       section: "landscape",
       chapter: "Baselines",
-      title: "Transfer Baselines in the ASAP Paper",
+      title: "Baseline Transfer Formulations",
       subtitle: "The main comparison is with alternative ways to compensate simulator mismatch, not with alternative motion sources.",
       visual: paperImage(
         "assets/asap_figure3_baselines.png",
@@ -305,8 +309,8 @@ window.ASAP_DECK = {
       ),
       points: [
         `<strong>Vanilla.</strong> No simulator correction; train in IsaacGym and test in IsaacSim, Genesis, or the real robot.`,
-        `<strong>SysID.</strong> Search CoM shift, base-mass ratio, and 23-DoF PD gain ratios that replay real trajectories best.`,
-        `<strong>DeltaDynamics versus ASAP.</strong> One corrects next-state prediction; the other corrects the action interface the policy already uses.`,
+        `<strong>SysID.</strong> Search base CoM shift <strong>(c_x, c_y, c_z)</strong>, base-mass ratio <strong>k_m</strong>, and 23-DoF PD gain ratios <strong>(k_p^i, k_d^i)</strong> that replay real trajectories best.`,
+        `<strong>DeltaDynamics versus ASAP.</strong> One corrects next-state prediction; the other corrects the action interface the policy already uses for PPO fine-tuning.`,
       ],
       ...note(
         "이 슬라이드는 논문 안의 baseline을 정확히 이해하는 데 중요합니다. Vanilla는 아무 보정 없이 policy를 그대로 옮기는 기준선입니다. SysID는 CoM shift와 base mass ratio, 그리고 23개 관절의 PD gain ratio를 real rollout replay 기준으로 탐색합니다. DeltaDynamics는 residual dynamics model로 다음 상태를 보정하려 하고, ASAP은 residual action policy로 effective command 자체를 보정합니다.",
@@ -321,7 +325,7 @@ window.ASAP_DECK = {
       section: "pretrain",
       chapter: "Reference",
       role: "Overview",
-      title: "ASAP Pipeline",
+      title: "ASAP Framework Overview",
       subtitle: "The rest of the deck follows the exact stage order shown in the paper.",
       visual: paperImage(
         "assets/asap_figure2_pipeline.png",
@@ -329,8 +333,8 @@ window.ASAP_DECK = {
       ),
       points: [
         `Stage 1 pretrains a motion-tracking policy from retargeted human-video references.`,
-        `Stage 2 collects real rollouts, trains a delta action model, and freezes it inside the simulator.`,
-        `The final deployed artifact is still <strong>one policy</strong>; the delta model is a training-time alignment tool.`,
+        `Stage 2 collects real trajectories <strong>D^r = {s_0^r, a_0^r, ..., s_T^r, a_T^r}</strong>, trains a delta action model, and freezes it inside the simulator.`,
+        `Policy fine-tuning is performed with <strong>PPO</strong> in the aligned simulator, while deployment still uses <strong>one policy</strong>.`,
       ],
       ...note(
         "이제부터는 Figure 2를 따라가시면 됩니다. 먼저 human-video 기반 reference를 만들고, 그 reference를 따라가는 tracking policy를 시뮬레이터에서 학습합니다. 그 다음 실제 로봇에서 rollout을 모아서 delta action model을 학습하고, 그 model을 시뮬레이터 안에 고정한 뒤 tracking policy를 다시 fine-tune합니다. 마지막 배포 시점에는 delta model이 아니라 fine-tuned policy 하나만 실제 로봇에 올라갑니다.",
@@ -341,7 +345,7 @@ window.ASAP_DECK = {
     {
       section: "pretrain",
       chapter: "Reference",
-      title: "Human-Video Retargeting to Unitree G1",
+      title: "Human-Video Retargeting Pipeline",
       subtitle: "The reference motion is reconstructed, cleaned, and retargeted before control learning begins.",
       visual: paperImage(
         "assets/asap_figure3_retargeting.png",
@@ -351,6 +355,7 @@ window.ASAP_DECK = {
         `The pipeline goes from <strong>video → TRAM reconstruction → SMPL motion → RL cleanup → G1 retargeting</strong>.`,
         `The target of retargeting is robot-feasible motion rather than direct replay of human geometry.`,
         `This matters because stage-2 transfer claims are only meaningful if the stage-1 reference is already physically sensible.`,
+        `The paper explicitly uses <strong>TRAM</strong> for 3D reconstruction and <strong>SMPL</strong> as the intermediate human-body representation.`,
       ],
       ...note(
         "Figure 3는 stage 1 reference가 어떻게 만들어지는지 보여줍니다. 사람 비디오에서 시작해 TRAM으로 3차원 human motion을 SMPL 형식으로 복원하고, 그 motion을 simulation 안에서 RL로 한 번 더 정리한 뒤, 최종적으로 G1 morphology에 맞게 retarget합니다. 중요한 점은 사람 관절값을 그대로 복사하는 것이 아니라, 로봇이 실제로 추적 가능한 reference를 만드는 과정이라는 것입니다.",
