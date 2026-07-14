@@ -102,16 +102,17 @@ window.ASAP_DECK = {
       title: "Core mechanism",
       subtitle: "Measure the physics gap from real rollouts, correct the simulator through action residuals, then fine-tune the policy under that corrected simulator.",
       visual: {
-        type: "formula",
-        items: [
-          ["Simulator", "s<sub>t+1</sub><sup>sim</sup> = f<sup>sim</sup>(s<sub>t</sub>, a<sub>t</sub>)"],
-          ["Reality", "s<sub>t+1</sub><sup>real</sup> = f<sup>real</sup>(s<sub>t</sub>, a<sub>t</sub>)"],
-          ["ASAP", "s<sub>t+1</sub> = f<sup>sim</sup>(s<sub>t</sub>, a<sub>t</sub> + π<sup>Δ</sup>(s<sub>t</sub>, a<sub>t</sub>))"],
-        ],
+        type: "image",
+        src: "assets/asap_pipeline.png",
+        alt: "ASAP pipeline figure",
+        caption: "ASAP pipeline figure.",
+        source: PROJECT_URL,
+        sourceLabel: "project",
       },
       points: [
+        "The pipeline is two-stage: <strong>pretrain a strong tracker</strong>, then <strong>align the simulator with real rollouts</strong> before final fine-tuning.",
         "The deployed artifact remains a single policy.",
-        "The delta model is used to improve training, not to patch runtime control.",
+        "The delta model improves training dynamics rather than patching runtime control.",
       ],
     },
 
@@ -609,13 +610,18 @@ window.ASAP_DECK = {
       title: "Hard motions are the right stress test",
       subtitle: "Easy motions can hide a transfer gap that dynamic motions expose immediately.",
       visual: {
-        type: "compare",
-        rows: [
-          ["Slow, forgiving skills", "Mismatch may stay hidden", "Many methods look acceptable when timing is loose and impacts are mild."],
-          ["Dynamic balance", "Mismatch becomes visible", "Contact and base-motion bias begin to alter the entire rollout."],
-          ["Explosive skills", "Mismatch becomes decisive", "A small error can ruin the landing or erase the skill completely."],
-        ],
+        type: "image",
+        src: "assets/asap_cr7_frame.png",
+        alt: "Representative ASAP target motion frame",
+        caption: "Representative target motion from the ASAP project.",
+        source: PROJECT_URL,
+        sourceLabel: "project",
       },
+      points: [
+        "Slow, forgiving skills can hide transfer weakness because the controller has time to compensate.",
+        "Dynamic balance and explosive motions expose whether the simulator taught the right contact and timing behavior.",
+        "That is why ASAP is best judged on expressive, failure-sensitive motions rather than easy averages.",
+      ],
     },
     {
       section: "evidence",
