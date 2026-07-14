@@ -106,7 +106,7 @@ window.ASAP_DECK = {
         "Figure 1 from the paper: diverse agile whole-body skills on Unitree G1.",
       ),
       ...note(
-        "이 발표는 ASAP 논문을 다룹니다. 핵심 문제는 시뮬레이터에서는 이미 꽤 잘 되는 전신 모션 추적 정책이 실제 로봇에 올리면 민첩성과 안정성을 잃는다는 점입니다. 그래서 이 논문은 새 모션을 만드는 대신, 실제 롤아웃을 이용해 시뮬레이터 물리를 더 실제에 가깝게 맞춘 뒤 그 안에서 정책을 다시 학습시키는 데 초점을 둡니다.",
+        "이 발표는 ASAP 논문을 다룹니다. 핵심 문제는 시뮬레이터에서는 이미 꽤 잘 되는 whole-body motion-tracking policy가 실제 로봇에 올리면 민첩성과 안정성을 잃는다는 점입니다. 그래서 이 논문은 새 모션을 만드는 대신, 실제 rollout을 이용해 simulator physics를 더 실제에 가깝게 맞춘 뒤 그 안에서 policy를 다시 학습시키는 데 초점을 둡니다.",
         "whole-body skill은 단순 보행이 아니라 점프, 한 발 지지, 킥처럼 상체와 하체가 함께 개입하는 동작을 뜻합니다. 이런 동작은 접지, 착지, 회복이 모두 얽혀 있어서 물리 오차가 빨리 드러납니다.\n\nsim-to-real은 시뮬레이터에서 학습한 정책을 실제 하드웨어로 옮기는 과정입니다. 이 논문은 그 과정에서 남는 마지막 병목을 dynamics mismatch, 즉 시뮬레이터와 실제 하드웨어의 물리 차이로 봅니다.",
         [
           qa("이 논문의 한 줄 요약은 무엇인가요?", "실제 롤아웃으로 배운 delta action model을 시뮬레이터에 넣고, 그 정렬된 시뮬레이터 안에서 정책을 다시 fine-tune하는 방법입니다."),
@@ -147,7 +147,7 @@ window.ASAP_DECK = {
         `Its third contribution is a <strong>three-scenario evaluation</strong>: IsaacGym→IsaacSim, IsaacGym→Genesis, and IsaacGym→Real.`,
       ],
       ...note(
-        "논문의 기여를 이 범위로 한정해서 읽는 것이 중요합니다. 저자들은 reference generation 자체를 새로 제안하는 것이 아니라, 이미 있는 stage 1 motion tracking stack 위에 simulator alignment 단계를 추가합니다. 그리고 그 결과를 IsaacGym에서 IsaacSim으로, IsaacGym에서 Genesis로, 그리고 실제 G1 로봇으로 옮기는 세 가지 전이 시나리오에서 모두 검증했다는 점을 contribution으로 내세웁니다.",
+        "논문의 기여를 이 범위로 한정해서 읽는 것이 중요합니다. 저자들은 reference generation 자체를 새로 제안하는 것이 아니라, 이미 있는 stage 1 motion-tracking stack 위에 simulator alignment 단계를 추가합니다. 그리고 그 결과를 IsaacGym에서 IsaacSim으로, IsaacGym에서 Genesis로, 그리고 실제 G1 로봇으로 옮기는 세 가지 전이 시나리오에서 모두 검증했다는 점을 contribution으로 내세웁니다.",
         "이 논문을 읽을 때 중요한 것은 claim boundary입니다. 즉 이것은 새로운 humanoid architecture나 새로운 motion source 논문이 아니라, transfer mechanism 논문이라는 점을 먼저 고정해야 합니다. 발표에서는 이 경계를 분명히 해야 뒤의 결과 표를 과대해석하지 않게 됩니다.",
         [
           qa("이 논문은 새로운 policy architecture를 제안하나요?", "핵심은 architecture보다 transfer pipeline입니다. policy는 PPO 기반 motion-tracking policy이고, 새로 추가되는 것은 delta action model과 aligned simulator입니다."),
@@ -394,7 +394,7 @@ window.ASAP_DECK = {
         `The deployed actor outputs <strong>23-dimensional target joint positions</strong>, while the critic receives additional privileged reference information during PPO training.`,
       ],
       ...note(
-        "stage 1 policy의 실제 설계는 여기 적힌 그대로입니다. actor는 5-step proprioceptive history와 phase variable을 보고 23차원 target joint position을 출력하고, 이 값은 PD controller로 내려갑니다. critic은 여기에 reference global position과 root linear velocity 같은 privileged information을 더 봅니다. 그리고 이 전체 policy는 PPO로 학습됩니다. 즉 paper의 핵심 policy는 phase-based motion tracking policy이고, delta action도 결국 이 action interface 위에서 작동합니다.",
+        "stage 1 policy의 실제 설계는 여기 적힌 그대로입니다. actor는 5-step proprioceptive history와 phase variable을 보고 23차원 target joint position을 출력하고, 이 값은 PD controller로 내려갑니다. critic은 여기에 reference global position과 root linear velocity 같은 privileged information을 더 봅니다. 그리고 이 전체 policy는 PPO로 학습됩니다. 즉 paper의 핵심 policy는 phase-based motion-tracking policy이고, delta action도 결국 이 action interface 위에서 작동합니다.",
         "POMDP는 정책이 환경의 완전한 상태를 모두 관측할 수 없는 설정입니다. real humanoid control에서는 외부 절대 위치나 완전한 reference state를 actor가 항상 알 수 없기 때문에 POMDP로 보는 것이 자연스럽습니다.\n\nasymmetric actor-critic은 actor와 critic이 서로 다른 관측을 쓰는 구조입니다. actor는 실제 배포 가능한 입력만 쓰고, critic은 시뮬레이터에서만 볼 수 있는 privileged information을 추가로 써서 학습을 안정화합니다.\n\nPPO는 clipped objective를 쓰는 on-policy policy gradient 계열 알고리즘이고, PD controller는 high-level target joint position을 low-level motor command로 바꾸는 고전적인 feedback controller입니다.",
         [
           qa("왜 phase variable이 꼭 필요한가요?", "비슷한 pose라도 motion의 앞부분인지 뒷부분인지에 따라 다음 action이 달라지기 때문입니다. phase는 그 timing context를 제공합니다."),
